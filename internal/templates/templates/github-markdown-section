@@ -1,0 +1,16 @@
+{{- $r := . -}}
+{{ $r.Header }} [{{ $r.Version }}](https://github.com/{{ $r.Repository }}/compare/{{ $r.PreviousVersion }}...{{ $r.Version }}) - {{ $r.Date.Format "2006-01-02" }}
+
+{{ range $r.Sections -}}
+{{ $r.SectionHeader }} {{ .Title }}
+
+{{ if .Fragments -}}
+{{ range .Fragments -}}
+- {{ .Text | indent 2  }}
+  [#{{ .Issue }}](https://github.com/{{ $r.Repository }}/issues/{{ .Issue }})
+{{ end }}
+{{ else if .ShowAlways -}}
+No significant changes.
+{{ end }}
+{{ end }}
+----
