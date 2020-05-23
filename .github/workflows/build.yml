@@ -1,19 +1,40 @@
+---
 name: Build
 
 on:
   push:
     branches: [master]
   pull_request:
-    branches: [master]
 
 jobs:
+  lint:
+    name: Run pre-commit hooks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-python@v1
+      - name: set PY
+        run: |
+          echo "::set-env name=PY::$(python -c 'import hashlib, sys; print(
+          hashlib.sha256(
+          sys.version.encode()+sys.executable.encode()
+          ).hexdigest())')"
+      - uses: actions/cache@v1
+        with:
+          path: ~/.cache/pre-commit
+          key: |
+            pre-commit |
+            ${{ env.PY }} |
+            ${{ hashFiles('.pre-commit-config.yaml') }}
+      - uses: pre-commit/action@v1.1.0
+
   build:
     name: Test on go ${{ matrix.go_version }} and ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         go_version: [1.14, 1.13]
-        os: [ubuntu-latest, macOS-latest, windows-latest]
+        os: [ubuntu-latest, macOS-latest]
     steps:
       - name: Set up Go ${{ matrix.go_version }}
         uses: actions/setup-go@v1
@@ -48,4 +69,4 @@ jobs:
       - name: Send coverage
         uses: shogo82148/actions-goveralls@v1
         with:
-          path-to-profile: tests/coverage.*/cover.out
+          path-to-profile: tests/coverage/coverage.out

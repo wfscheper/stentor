@@ -24,6 +24,7 @@ const (
 	// tools
 	golangcilintVersion = "v1.26.0"
 	gotestsumVersion    = "v0.4.1"
+	riceVersion         = "v1.0.0"
 	toolsDir            = "tools"
 )
 
@@ -36,7 +37,7 @@ var (
 	goexe = "go"
 
 	// tests
-	coverageDir     = filepath.Join(testDir, "coverage."+time.Now().Format("2006-01-02T15:04:05"))
+	coverageDir     = filepath.Join(testDir, "coverage")
 	coverageProfile = filepath.Join(coverageDir, "coverage.out")
 
 	// tools
@@ -44,15 +45,13 @@ var (
 	golangcilintPath = filepath.Join(toolsBinDir, "golangci-lint")
 	goreleaserPath   = filepath.Join(toolsBinDir, "goreleaser")
 	gotestsumPath    = filepath.Join(toolsBinDir, "gotestsum")
+	ricePath         = filepath.Join(toolsBinDir, "rice")
 
 	// commands
-	gobuild      = sh.RunCmd(goexe, "build")
-	gofmt        = sh.RunCmd(goexe, "fmt")
-	golangcilint = sh.RunCmd(golangcilintPath, "run")
-	goreleaser   = sh.RunCmd(goreleaserPath)
-	gotestsum    = sh.RunCmd(gotestsumPath, "--")
-	govet        = sh.RunCmd(goexe, "vet")
-	rm           = sh.RunCmd("rm", "-f")
+	gobuild = sh.RunCmd(goexe, "build")
+	gofmt   = sh.RunCmd(goexe, "fmt")
+	govet   = sh.RunCmd(goexe, "vet")
+	rm      = sh.RunCmd("rm", "-f")
 )
 
 func init() {
@@ -61,17 +60,14 @@ func init() {
 	if runtime.GOOS == "windows" {
 		exeName += ".exe"
 		golangcilintPath += ".exe"
-		golangcilint = sh.RunCmd(golangcilintPath, "run")
 		goreleaserPath += ".exe"
-		goreleaser = sh.RunCmd(goreleaserPath)
 		gotestsumPath += ".exe"
-		gotestsum = sh.RunCmd(gotestsumPath, "--")
 	}
 }
 
 // All runs format, lint, vet, build, and test targets
 func All(ctx context.Context) {
-	mg.SerialCtxDeps(ctx, Format, Lint, Vet, Build, Test)
+	mg.SerialCtxDeps(ctx, Lint, Vet, Build, Test)
 }
 
 // Benchmark runs the benchmark suite
@@ -81,6 +77,7 @@ func Benchmark(ctx context.Context) error {
 
 // Build runs go build
 func Build(ctx context.Context) error {
+	mg.CtxDeps(ctx, Generate)
 	say("building " + exeName)
 	version, err := sh.Output("git", "describe", "--tags", "--always", "--dirty", "--match=v*")
 	if err != nil {
@@ -132,17 +129,26 @@ func Coverage(ctx context.Context) error {
 	return nil
 }
 
-// Format runs go fmt
-func Format(ctx context.Context) error {
-	say("running go fmt")
-	return gofmt("./...")
+// Generate runs go generate
+func Generate(ctx context.Context) error {
+	mg.CtxDeps(ctx, getRice)
+
+	rebuild, err := target.Dir(
+		filepath.Join("internal", "templates", "rice-box.go"),
+		filepath.Join("internal", "templates", "templates"),
+	)
+	if err == nil && rebuild {
+		say("running go generate")
+		return sh.RunV(goexe, "generate", "-x", "./...")
+	}
+	return err
 }
 
 // Lint runs golangci-lint
 func Lint(ctx context.Context) error {
 	mg.CtxDeps(ctx, getGolangciLint)
 	say("running " + golangcilintPath)
-	return golangcilint()
+	return sh.RunV(golangcilintPath, "run")
 }
 
 // Test runs the test suite
@@ -203,6 +209,14 @@ func getGotestsum(ctx context.Context) error {
 	return err
 }
 
+func getRice(ctx context.Context) error {
+	rebuild, err := target.Path(ricePath)
+	if err == nil && rebuild {
+		return goGet(ctx, "github.com/GeertJohan/go.rice/rice@"+riceVersion)
+	}
+	return err
+}
+
 func mkCoverageDir(ctx context.Context) error {
 	_, err := os.Stat(coverageDir)
 	if os.IsNotExist(err) {
@@ -213,7 +227,8 @@ func mkCoverageDir(ctx context.Context) error {
 
 func runTests(testType ...string) error {
 	testType = append(testType, "./...")
-	return gotestsum(testType...)
+	testType = append([]string{"--"}, testType...)
+	return sh.RunV(gotestsumPath, testType...)
 }
 
 func say(format string, args ...interface{}) (int, error) {

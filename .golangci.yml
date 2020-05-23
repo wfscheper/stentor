@@ -1,3 +1,7 @@
+run:
+  skip-files:
+    - internal/templates/rice-box.go
+
 linters:
   disable-all: true
   enable:
