@@ -9,6 +9,12 @@ noun
 Stentor is a CLI for generating a change log or release notes from a set of fragment files and templates.
 It was inspired by [towncrier](https://github.com/twisted/towncrier) and [git-chlog](https://github.com/git-chglog/git-chglog).
 
+## Badges
+
+![Build](https://github.com/wfscheper/stentor/workflows/Build/badge.svg)
+[![Coverage Status](https://coveralls.io/repos/github/wfscheper/stentor/badge.svg?branch=master)](https://coveralls.io/github/wfscheper/stentor?branch=master)
+[![License](https://img.shields.io/github/license/wfscheper/stentor)](/LICENSE)
+
 ## Installation
 
 ### Binary
