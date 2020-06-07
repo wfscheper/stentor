@@ -11,34 +11,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package test
 
 import (
-	"fmt"
-	"os"
-)
-
-const (
-	appName = "stentor"
-
-	// exit codes
-	successExitCode  = 0
-	genericErrorCode = 1
+	"flag"
+	"runtime"
 )
 
 var (
-	version = "dev"
-	commit  = "none"
-	date    = "none"
+	// ExeSuffix is the suffix of executable files (.exe on Windows).
+	ExeSuffix string
+	// Verbose controls logging of test commands.
+	Verbose = flag.Bool("logs", false, "log stdin/stdout of test commands")
+	// UpdateGolden controls updating test fixtures.
+	UpdateGolden = flag.Bool("update", false, "update golden files")
 )
 
-func main() {
-	// get the current wd
-	wd, err := os.Getwd()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: failed to get current directory: %v\n", err)
-		os.Exit(genericErrorCode)
+func init() {
+	if runtime.GOOS == "windows" {
+		ExeSuffix = ".exe"
 	}
-
-	os.Exit(New(wd, os.Args, os.Environ(), os.Stderr, os.Stdout).Run())
 }
