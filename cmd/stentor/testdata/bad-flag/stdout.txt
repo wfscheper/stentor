@@ -1,0 +1,7 @@
+Usage: stentor [OPTIONS]
+
+stentor is a CLI for generating a change log or release notes from a set of fragment files and templates.
+
+Flags:
+
+  -version  show version information (default: false)
