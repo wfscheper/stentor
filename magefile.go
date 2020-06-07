@@ -146,9 +146,9 @@ func Generate(ctx context.Context) error {
 
 // Lint runs golangci-lint
 func Lint(ctx context.Context) error {
-	mg.CtxDeps(ctx, getGolangciLint)
-	say("running " + golangcilintPath)
-	return sh.RunV(golangcilintPath, "run")
+	mg.CtxDeps(ctx)
+	say("running pre-commit hooks")
+	return sh.RunV("pre-commit", "run", "--all-files")
 }
 
 // Test runs the test suite
