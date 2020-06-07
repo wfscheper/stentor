@@ -2,4 +2,4 @@
 
 In alphabetial order:
 
-- Walter Scheper <ratlaw@gmail.com>
+- Walter Scheper <walter.scheper@gmail.com>
