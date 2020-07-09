@@ -22,6 +22,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/ianbruene/go-difflib/difflib"
 )
 
 // Case loads a testdata.json test configuration and executes that test.
@@ -57,7 +59,7 @@ func NewCase(t *testing.T, dir, name string) *Case {
 
 // CompareOutput compares stdout to the contents of a stdout.txt file in the test directory.
 func (c *Case) CompareOutput(stdout string) {
-	expected, err := ioutil.ReadFile(filepath.Join(c.rootPath, "stdout.txt"))
+	data, err := ioutil.ReadFile(filepath.Join(c.rootPath, "stdout.txt"))
 	if err != nil {
 		if os.IsNotExist(err) {
 			return
@@ -65,34 +67,34 @@ func (c *Case) CompareOutput(stdout string) {
 		panic(err)
 	}
 
-	if stdout != string(expected) {
-		c.t.Errorf("stdout was not as expected\nWANT:\n%s\nGOT:\n%s\n", expected, stdout)
+	if got, want := stdout, string(data); got != want {
+		c.t.Errorf("stdout was not as expected\n%s", diffErr(c.t, got, want))
 	}
 }
 
 // CompareError compares stderr to the contents of a stderr.txt file in the test directory.
 func (c *Case) CompareError(errIn error, stderr string) {
-	var expected string
-	if expectedData, err := ioutil.ReadFile(filepath.Join(c.rootPath, "stderr.txt")); err != nil {
+	data, err := ioutil.ReadFile(filepath.Join(c.rootPath, "stderr.txt"))
+	if err != nil {
 		if !os.IsNotExist(err) {
 			panic(err)
 		}
-	} else {
-		expected = string(expectedData)
 	}
-	expectError := expected != ""
+
+	want := string(data)
+	expectError := data != nil
 	gotError := stderr != "" && errIn != nil
 	switch {
 	case expectError && gotError:
-		switch matches := strings.Count(stderr, expected); matches {
+		switch matches := strings.Count(stderr, want); matches {
 		case 0:
-			c.t.Errorf("stderr did not contain the expected error\nWANT:\n%s\nGOT:\n%s\n", expected, stderr)
+			c.t.Errorf("stderr did not contain the expected error:\n%s", diffErr(c.t, stderr, want))
 		case 1:
 		default:
-			c.t.Errorf("expected error '%s' occurred %d times in stderr %s", expected, matches, stderr)
+			c.t.Errorf("expected error '%s' occurred %d times in stderr\n%s", want, matches, stderr)
 		}
 	case expectError && !gotError:
-		c.t.Errorf("expected error:\n%s", expected)
+		c.t.Errorf("expected error:\n%s", want)
 	case !expectError && gotError:
 		c.t.Errorf("unexpected error:\n%s", stderr)
 	}
@@ -186,3 +188,20 @@ func (te *Environment) Run(progName string, args []string) error {
 
 // RunFunc is a function that runs a test.
 type RunFunc func(prog string, args []string, stdout, stderr io.Writer, dir string, env []string) error
+
+func diffErr(t *testing.T, got, want string) string {
+	t.Helper()
+
+	diff, err := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
+		A:        difflib.SplitLines(want),
+		B:        difflib.SplitLines(got),
+		Context:  3,
+		FromFile: "want",
+		ToFile:   "got",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return diff
+}

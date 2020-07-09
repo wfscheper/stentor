@@ -18,89 +18,106 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
-	"runtime"
+	"path/filepath"
 	"text/tabwriter"
+
+	"github.com/wfscheper/stentor"
 )
 
 const (
-	// output strings
-	versionInfo = `%s
-  version     : %s
-  build date  : %s
-  git hash    : %s
-  go version  : %s
-  go compiler : %s
-  platform    : %s/%s
-`
+	appName           = "stentor"
+	genericExitCode   = 1
+	succesfulExitCode = 0
+)
+
+var (
+	buildDate = "unknown"
+	commit    = "unknown"
+	version   = "dev"
 )
 
 type Stentor struct {
-	Args    []string
-	Env     []string
-	Stderr  *log.Logger
-	Stdout  *log.Logger
-	WorkDir string
+	Args    []string // command-line arguments
+	Env     []string // os environment
+	WorkDir string   // Where to execute
 
-	showVersion *bool
+	// internal loggers
+	err *log.Logger
+	out *log.Logger
+
+	// command-line options
+	configFile  string
+	showVersion bool
 }
 
-func New(wd string, args, env []string, stderr, stdout io.Writer) *Stentor {
+func New(wd string, args, env []string, err, out io.Writer) *Stentor {
 	return &Stentor{
 		Args:    args,
 		Env:     env,
-		Stderr:  log.New(stderr, "", 0),
-		Stdout:  log.New(stdout, "", 0),
 		WorkDir: wd,
+		err:     log.New(err, "", 0),
+		out:     log.New(out, "", 0),
 	}
 }
 
 func (s *Stentor) Run() int {
 	// parse flags
 	if err := s.parseFlags(); err != nil {
-		return genericErrorCode
+		if err == flag.ErrHelp {
+			return succesfulExitCode
+		}
+		return genericExitCode
 	}
 
-	// display version info
-	if *s.showVersion {
-		return s.displayVersion()
+	// show version and exit
+	if s.showVersion {
+		s.displayVersion()
+		return succesfulExitCode
 	}
-	return 0
-}
 
-func (s *Stentor) displayVersion() int {
-	s.Stdout.Printf(
-		versionInfo,
-		appName,
-		version,
-		date,
-		commit,
-		runtime.Version(),
-		runtime.Compiler,
-		runtime.GOOS,
-		runtime.GOARCH,
-	)
-	return successExitCode
+	// parse config file
+	data, err := ioutil.ReadFile(s.configFile)
+	if err != nil {
+		s.err.Printf("could not read config files: %v", err)
+		return genericExitCode
+	}
+
+	_, err = stentor.ParseBytes(data)
+	if err != nil {
+		s.err.Printf("could not parse config file: %v", err)
+		return genericExitCode
+	}
+
+	return succesfulExitCode
 }
 
 func (s *Stentor) parseFlags() error {
 	flags := flag.NewFlagSet(appName, flag.ContinueOnError)
-	flags.SetOutput(s.Stderr.Writer())
+	flags.SetOutput(s.err.Writer())
 
-	s.showVersion = flags.Bool("version", false, "show version information")
+	flags.StringVar(&s.configFile, "config", filepath.Join(".stentor.d/stentor.toml"), "path to config file")
+	flags.BoolVar(&s.showVersion, "version", false, "show version information")
 
+	// setup usage information
 	s.setUsage(flags)
 
-	if err := flags.Parse(s.Args[1:]); err != nil && err != flag.ErrHelp {
+	// parse command line arguments
+	if err := flags.Parse(s.Args[1:]); err != nil {
 		return err
 	}
 
 	return nil
 }
 
+func (s *Stentor) displayVersion() {
+	s.out.Printf("%s %s built from %s on %s\n", appName, version, commit, buildDate)
+}
+
 func (s *Stentor) setUsage(fs *flag.FlagSet) {
-	var usage bytes.Buffer
-	tw := tabwriter.NewWriter(&usage, 0, 4, 2, ' ', 0)
+	var flagsUsage bytes.Buffer
+	tw := tabwriter.NewWriter(&flagsUsage, 0, 4, 2, ' ', 0)
 	fs.VisitAll(func(f *flag.Flag) {
 		switch f.DefValue {
 		case "":
@@ -113,14 +130,13 @@ func (s *Stentor) setUsage(fs *flag.FlagSet) {
 	})
 
 	tw.Flush()
-
 	fs.Usage = func() {
-		s.Stdout.Printf(`Usage: %s [OPTIONS]
+		s.out.Printf(`Usage: %[1]s [OPTIONS]
 
 %[1]s is a CLI for generating a change log or release notes from a set of fragment files and templates.
 
 Flags:
 
-%s`, appName, usage.String())
+%s`, appName, flagsUsage.String())
 	}
 }

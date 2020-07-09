@@ -22,6 +22,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -65,6 +66,9 @@ var (
 	gofmt   = sh.RunCmd(goexe, "fmt")
 	govet   = sh.RunCmd(goexe, "vet")
 	rm      = sh.RunCmd("rm", "-f")
+
+	// args
+	gotestArgs = []string{"--", "-timeout=15s"}
 )
 
 func init() {
@@ -103,7 +107,7 @@ func Build(ctx context.Context) error {
 	buildDate := time.Now().UTC()
 	ldflags := "-X main.version=" + version +
 		" -X main.commit=" + commit +
-		" -X main.date=" + buildDate.Format(time.RFC3339)
+		" -X main.buildDate=" + buildDate.Format(time.RFC3339)
 	return gobuild("-v", "-o", filepath.Join("bin", exeName), "-ldflags", ldflags, "./cmd/stentor")
 }
 
@@ -239,8 +243,12 @@ func mkCoverageDir(ctx context.Context) error {
 }
 
 func runTests(testType ...string) error {
-	testType = append(testType, "./...")
-	testType = append([]string{"--"}, testType...)
+	if update, err := strconv.ParseBool(os.Getenv("UPDATE_GOLDEN")); err == nil && update {
+		testType = append(testType, "./cmd/stentor", "-update")
+	} else {
+		testType = append(testType, "./...")
+	}
+	testType = append(gotestArgs, testType...)
 	return sh.RunV(gotestsumPath, testType...)
 }
 
