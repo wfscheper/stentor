@@ -4,4 +4,5 @@ stentor is a CLI for generating a change log or release notes from a set of frag
 
 Flags:
 
+  -config   path to config file (default: .stentor.d/stentor.toml)
   -version  show version information (default: false)

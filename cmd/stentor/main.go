@@ -14,31 +14,17 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"os"
-)
-
-const (
-	appName = "stentor"
-
-	// exit codes
-	successExitCode  = 0
-	genericErrorCode = 1
-)
-
-var (
-	version = "dev"
-	commit  = "none"
-	date    = "none"
 )
 
 func main() {
 	// get the current wd
 	wd, err := os.Getwd()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: failed to get current directory: %v\n", err)
-		os.Exit(genericErrorCode)
+		log.Fatalf("could not read current working directory: %v", err)
 	}
 
-	os.Exit(New(wd, os.Args, os.Environ(), os.Stderr, os.Stdout).Run())
+	s := New(wd, os.Args, os.Environ(), os.Stderr, os.Stdout)
+	os.Exit(s.Run())
 }

@@ -11,6 +11,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// +build !windows
+
 package main
 
 import (
@@ -109,7 +111,8 @@ func runTest(name, relPath, wd string, run test.RunFunc) func(t *testing.T) {
 		for i, args := range testCase.Commands {
 			err = testEnv.Run(appName, args)
 			if err != nil && i < len(testCase.Commands)-1 {
-				t.Fatalf("cmd '%s' raised an unexpected error: %s", strings.Join(args, " "), err.Error())
+				t.Errorf("cmd '%s' raised an unexpected error: %s", strings.Join(args, " "), err.Error())
+				return
 			}
 		}
 
