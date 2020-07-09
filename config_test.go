@@ -14,33 +14,91 @@
 package stentor
 
 import (
-	"reflect"
+	"bytes"
 	"strings"
 	"testing"
 
+	"github.com/pelletier/go-toml"
+	"github.com/stretchr/testify/assert"
 	"pgregory.net/rapid"
 )
+
+func TestConfig_marshal(t *testing.T) {
+	is := assert.New(t)
+
+	data, err := toml.Marshal(&tomlConfig{&Config{}})
+	if is.NoError(err) {
+		is.Equal("\n[stentor]\n", string(data))
+	}
+
+	input := `
+[stentor]
+fragment_dir = "fragments"
+hosting = "github"
+markup = "markdown"
+repository = "name/repo"
+
+[[stentor.sections]]
+name = "Named"
+short_name = "name"
+show_always = true
+`
+	u, err := ParseBytes([]byte(input))
+	is.NoError(err)
+
+	buf := &bytes.Buffer{}
+	err = toml.NewEncoder(buf).Indentation("").Encode(&tomlConfig{u})
+	if is.NoError(err) {
+		is.Equal(input, buf.String())
+	}
+}
 
 func Test_parseConfig(t *testing.T) {
 	defaultConfig := &Config{
 		FragmentDir: ".stentor.d",
 		Hosting:     "github",
 		Markup:      "markdown",
+		Sections: []SectionConfig{
+			{
+				Name:      "Security",
+				ShortName: "security",
+			},
+			{
+				Name:      "Changed",
+				ShortName: "change",
+			},
+			{
+				Name:      "Deprecated",
+				ShortName: "deprecate",
+			},
+			{
+				Name:      "Removed",
+				ShortName: "remove",
+			},
+			{
+				Name:      "Added",
+				ShortName: "add",
+			},
+			{
+				Name:      "Fixed",
+				ShortName: "fix",
+			},
+		},
 	}
 
-	c, err := parseConfig("")
-	if err != nil {
-		t.Errorf("parseConfig(%q) returned an error: %v", "", err)
-	}
-	if got, want := c, defaultConfig; !reflect.DeepEqual(got, want) {
-		t.Errorf("parseConfig(%q) returned %+v, want %+v", "", got, want)
+	is := assert.New(t)
+
+	if c, err := parseConfig([]byte("")); is.NoError(err) {
+		is.Equal(defaultConfig, c)
 	}
 
-	// bad yaml
-	y := "hosting: foo\n\tmarkup: markdown\n"
-	if _, err := parseConfig(y); err == nil {
-		t.Errorf("parseConfig(%q) returned nil", y)
-	}
+	// bad toml
+	y := []byte(`
+[stentor]
+foo = "bar"
+`)
+	_, err := parseConfig(y)
+	is.EqualError(err, "undecoded keys: [\"stentor.foo\"]")
 }
 
 func Test_validateConfig(t *testing.T) {
@@ -49,6 +107,7 @@ func Test_validateConfig(t *testing.T) {
 	genHosting := rapid.SampledFrom([]string{"github", "gitlab"})
 	genMarkup := rapid.SampledFrom([]string{"markdown", "rst"})
 	genRepository := rapid.Just("foo/bar")
+	is := assert.New(t)
 
 	t.Run("invalid hosting", rapid.MakeCheck(func(t *rapid.T) {
 		c := &Config{
@@ -56,9 +115,7 @@ func Test_validateConfig(t *testing.T) {
 			Hosting:    rapid.String().Draw(t, "hosting").(string),
 			Markup:     genMarkup.Draw(t, "markup").(string),
 		}
-		if got, want := validateConfig(c), errBadHosting; got != want {
-			t.Errorf("validateConfig(%+v) returned %v, want %v", c, got, want)
-		}
+		is.EqualError(validateConfig(c), ErrBadHosting.Error())
 	}))
 
 	t.Run("invalid markup", rapid.MakeCheck(func(t *rapid.T) {
@@ -67,9 +124,7 @@ func Test_validateConfig(t *testing.T) {
 			Markup:     rapid.String().Draw(t, "markup").(string),
 			Repository: genRepository.Draw(t, "repository").(string),
 		}
-		if got, want := validateConfig(c), errBadMarkup; got != want {
-			t.Errorf("validateConfig(%+v) returned %v, want %v", c, got, want)
-		}
+		is.EqualError(validateConfig(c), ErrBadMarkup.Error())
 	}))
 
 	t.Run("invalid repository", rapid.MakeCheck(func(t *rapid.T) {
@@ -80,12 +135,19 @@ func Test_validateConfig(t *testing.T) {
 			Hosting: genHosting.Draw(t, "hosting").(string),
 			Markup:  genMarkup.Draw(t, "markup").(string),
 		}
-		want := errBadRepository
+		want := ErrBadRepository
 		if c.Repository == "" {
-			want = errMissingRepository
+			want = ErrMissingRepository
 		}
-		if got := validateConfig(c); got != want {
-			t.Errorf("validateConfig(%+v) returned %v, want %v", c, got, want)
+		is.EqualError(validateConfig(c), want.Error())
+	}))
+
+	t.Run("no sections", rapid.MakeCheck(func(t *rapid.T) {
+		c := &Config{
+			Hosting:    genHosting.Draw(t, "hosting").(string),
+			Markup:     genMarkup.Draw(t, "markup").(string),
+			Repository: genRepository.Draw(t, "repository").(string),
 		}
+		is.EqualError(validateConfig(c), ErrBadSections.Error())
 	}))
 }
