@@ -29,7 +29,7 @@ import (
 
 // The TestMain function creates a teststentor command for testing purposes and
 // deletes it after the tests have been run.
-// Most of this is taken from https://github.com/golang/dep/blob/master/cmd/dep/dep_test.go and reused here.
+// Most of this is taken from https://github.com/golang/dep and reused here.
 func TestMain(m *testing.M) {
 	args := []string{"build", "-o", "test" + appName + test.ExeSuffix}
 	out, err := exec.Command("go", args...).CombinedOutput()
@@ -71,7 +71,7 @@ func TestIntegration(t *testing.T) {
 	var relPath = "testdata"
 	err = filepath.Walk(relPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			t.Fatal("error walking testdata")
+			t.Fatal("error walking testdata:", err)
 		}
 
 		if filepath.Base(path) != "testcase.json" {
@@ -105,7 +105,8 @@ func runTest(name, relPath, wd string, run test.RunFunc) func(t *testing.T) {
 			t.Skipf("skipping %s", name)
 		}
 
-		testEnv := test.NewEnvironment(t, wd, run)
+		testEnv := test.NewEnvironment(t, testCase.InitialPath(), wd, run)
+		defer testEnv.Cleanup()
 
 		var err error
 		for i, args := range testCase.Commands {

@@ -84,9 +84,14 @@ func (s *Stentor) Run() int {
 		return genericExitCode
 	}
 
-	_, err = stentor.ParseBytes(data)
+	cfg, err := stentor.ParseBytes(data)
 	if err != nil {
 		s.err.Printf("could not parse config file: %v", err)
+		return genericExitCode
+	}
+
+	if err := stentor.ValidateConfig(cfg); err != nil {
+		s.err.Printf("invalid configuration: %v", err)
 		return genericExitCode
 	}
 

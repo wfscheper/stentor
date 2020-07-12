@@ -73,9 +73,6 @@ func ParseBytes(data []byte) (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := validateConfig(c); err != nil {
-		return nil, err
-	}
 	return c, nil
 }
 
@@ -126,7 +123,7 @@ func parseConfig(data []byte) (*Config, error) {
 	return c, nil
 }
 
-func validateConfig(c *Config) error {
+func ValidateConfig(c *Config) error {
 	// repository must be non-empty
 	if c.Repository == "" {
 		return ErrMissingRepository
