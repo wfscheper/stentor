@@ -20,6 +20,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -28,11 +29,12 @@ import (
 
 // Case loads a testdata.json test configuration and executes that test.
 type Case struct {
-	t        *testing.T
-	name     string
-	rootPath string
-	Commands [][]string `json:"commands"`
-	Skip     bool       `json:"skip"`
+	t           *testing.T
+	name        string
+	rootPath    string
+	initialPath string
+	Commands    [][]string `json:"commands"`
+	Skip        bool       `json:"skip"`
 }
 
 // NewCase returns a Case.
@@ -40,9 +42,10 @@ func NewCase(t *testing.T, dir, name string) *Case {
 	rootPath := filepath.FromSlash(filepath.Join(dir, name))
 
 	c := &Case{
-		t:        t,
-		name:     name,
-		rootPath: rootPath,
+		t:           t,
+		name:        name,
+		rootPath:    rootPath,
+		initialPath: filepath.Join(rootPath, "initial"),
 	}
 
 	data, err := ioutil.ReadFile(filepath.Join(rootPath, "testcase.json"))
@@ -100,6 +103,10 @@ func (c *Case) CompareError(errIn error, stderr string) {
 	}
 }
 
+func (c *Case) InitialPath() string {
+	return c.initialPath
+}
+
 // UpdateStderr updates the golden file for stderr with the working result.
 func (c *Case) UpdateStderr(stderr string) {
 	stderrPath := filepath.Join(c.rootPath, "stderr.txt")
@@ -137,6 +144,7 @@ func (c *Case) UpdateStdout(stdout string) {
 // Environment defines a test execution environment and captures the output.
 type Environment struct {
 	t      *testing.T
+	tmpdir string
 	wd     string
 	env    []string
 	stdout bytes.Buffer
@@ -145,12 +153,49 @@ type Environment struct {
 }
 
 // NewEnvironment initializes the test Environment.
-func NewEnvironment(t *testing.T, wd string, run RunFunc) *Environment {
-	return &Environment{
+func NewEnvironment(t *testing.T, rootPath, wd string, run RunFunc) *Environment {
+	e := &Environment{
 		t:   t,
 		wd:  wd,
 		env: os.Environ(),
 		run: run,
+	}
+
+	e.makeTempDir()
+	e.CopyTree(rootPath)
+
+	if err := os.Chdir(e.tmpdir); err != nil {
+		t.Fatalf("could not cd to %s: %v", e.tmpdir, err)
+	}
+
+	return e
+}
+
+func (te *Environment) Cleanup() {
+	_ = os.Chdir(te.wd)
+	_ = os.RemoveAll(te.tmpdir)
+}
+
+func (te *Environment) CopyTree(src string) {
+	err := filepath.Walk(src, func(p string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if p != src {
+			// strip src from path
+			localpath := p[len(src)+1:]
+			if info.IsDir() {
+				te.MakeDir(localpath)
+			} else {
+				dst := filepath.Join(te.tmpdir, localpath)
+				copyFile(te.t, dst, p)
+			}
+		}
+
+		return nil
+	})
+	if err != nil && !os.IsNotExist(err) {
+		te.t.Fatalf("could not copy %s: %v", src, err)
 	}
 }
 
@@ -164,6 +209,18 @@ func (te *Environment) GetStderr() string {
 	return te.stderr.String()
 }
 
+// Join returns a path rooted at the environment's tempdir.
+func (te *Environment) Join(args ...string) string {
+	return filepath.Join(te.tmpdir, filepath.Join(args...))
+}
+
+func (te *Environment) MakeDir(args ...string) {
+	p := te.Join(args...)
+	if err := os.MkdirAll(p, 0755); err != nil {
+		te.t.Fatalf("could not create directories %s: %+v", p, err)
+	}
+}
+
 // Run runs the tests command with args.
 func (te *Environment) Run(progName string, args []string) error {
 	if *Verbose {
@@ -173,7 +230,7 @@ func (te *Environment) Run(progName string, args []string) error {
 	te.stdout.Reset()
 	te.stderr.Reset()
 
-	status := te.run(prog, args, &te.stdout, &te.stderr, te.wd, te.env)
+	status := te.run(prog, args, &te.stdout, &te.stderr, te.tmpdir, te.env)
 
 	if *Verbose {
 		if te.stdout.Len() > 0 {
@@ -184,6 +241,24 @@ func (te *Environment) Run(progName string, args []string) error {
 		}
 	}
 	return status
+}
+
+func (te *Environment) makeTempDir() {
+	if te.tmpdir == "" {
+		var err error
+		te.tmpdir, err = ioutil.TempDir("", "stentor-")
+		if err != nil {
+			te.t.Fatal(err)
+		}
+
+		// OSX uses a symlink, so resolve the link
+		if runtime.GOOS == "darwin" {
+			te.tmpdir, err = filepath.EvalSymlinks(te.tmpdir)
+			if err != nil {
+				te.t.Fatal(err)
+			}
+		}
+	}
 }
 
 // RunFunc is a function that runs a test.
@@ -204,4 +279,24 @@ func diffErr(t *testing.T, got, want string) string {
 	}
 
 	return diff
+}
+
+func copyFile(t *testing.T, dst, src string) {
+	t.Helper()
+
+	s, err := os.Open(src)
+	if err != nil {
+		t.Fatalf("could not open %s: %v", src, err)
+	}
+	defer s.Close()
+
+	d, err := os.Create(dst)
+	if err != nil {
+		t.Fatalf("could not create %s: %v", dst, err)
+	}
+	defer d.Close()
+
+	if _, err := io.Copy(d, s); err != nil {
+		t.Fatalf("could not write to %s: %v", dst, err)
+	}
 }

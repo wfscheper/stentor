@@ -115,7 +115,7 @@ func Test_validateConfig(t *testing.T) {
 			Hosting:    rapid.String().Draw(t, "hosting").(string),
 			Markup:     genMarkup.Draw(t, "markup").(string),
 		}
-		is.EqualError(validateConfig(c), ErrBadHosting.Error())
+		is.EqualError(ValidateConfig(c), ErrBadHosting.Error())
 	}))
 
 	t.Run("invalid markup", rapid.MakeCheck(func(t *rapid.T) {
@@ -124,7 +124,7 @@ func Test_validateConfig(t *testing.T) {
 			Markup:     rapid.String().Draw(t, "markup").(string),
 			Repository: genRepository.Draw(t, "repository").(string),
 		}
-		is.EqualError(validateConfig(c), ErrBadMarkup.Error())
+		is.EqualError(ValidateConfig(c), ErrBadMarkup.Error())
 	}))
 
 	t.Run("invalid repository", rapid.MakeCheck(func(t *rapid.T) {
@@ -139,7 +139,7 @@ func Test_validateConfig(t *testing.T) {
 		if c.Repository == "" {
 			want = ErrMissingRepository
 		}
-		is.EqualError(validateConfig(c), want.Error())
+		is.EqualError(ValidateConfig(c), want.Error())
 	}))
 
 	t.Run("no sections", rapid.MakeCheck(func(t *rapid.T) {
@@ -148,6 +148,6 @@ func Test_validateConfig(t *testing.T) {
 			Markup:     genMarkup.Draw(t, "markup").(string),
 			Repository: genRepository.Draw(t, "repository").(string),
 		}
-		is.EqualError(validateConfig(c), ErrBadSections.Error())
+		is.EqualError(ValidateConfig(c), ErrBadSections.Error())
 	}))
 }
