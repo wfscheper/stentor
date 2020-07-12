@@ -18,11 +18,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ianbruene/go-difflib/difflib"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/wfscheper/stentor/internal/templates"
 )
 
 func TestSectionTemplate(t *testing.T) {
+	assert := assert.New(t)
+	require := require.New(t)
+
 	tests := []struct {
 		name        string
 		releaseFunc func(string) *Release
@@ -119,57 +123,29 @@ func TestSectionTemplate(t *testing.T) {
 			}
 
 			tmp, err := templates.New(tt.name)
-			if err != nil {
-				t.Fatal(err)
-			}
+			require.NoError(err)
 
 			buf := &bytes.Buffer{}
-			if err := tmp.Execute(buf, r); err != nil {
-				t.Fatalf("tmp.Execute returned an error: %v", err)
-			}
+			require.NoError(tmp.Execute(buf, r))
 
-			if got, want := buf.String(), tt.want; got != want {
-				diff := difflib.UnifiedDiff{
-					A:        difflib.SplitLines(want),
-					B:        difflib.SplitLines(got),
-					FromFile: "want",
-					ToFile:   "got",
-					Context:  3,
-				}
-				text, err := difflib.GetUnifiedDiffString(diff)
-				if err != nil {
-					t.Fatal(err)
-				}
-				t.Errorf("tmp.Execute returned:\n%s", text)
-			}
+			assert.Equal(tt.want, buf.String())
 		})
 	}
 }
 
 func TestNewRelease(t *testing.T) {
-	repo := "myname/myrepo"
-	r := NewRelease(repo)
-	if got, want := r.Repository, repo; got != want {
-		t.Errorf("r.Repository == %q, want %q", got, want)
-	}
+	r := NewRelease("myname/myrepo")
+	assert.Equal(t, "myname/myrepo", r.Repository)
 }
 
 func TestNewMarkdownRelease(t *testing.T) {
 	r := NewMarkdownRelease("myname/myrepo")
-	if got, want := r.Header, "##"; got != want {
-		t.Errorf("r.Header == %q, want %q", got, want)
-	}
-	if got, want := r.SectionHeader, "###"; got != want {
-		t.Errorf("r.SectionHeader == %q, want %q", got, want)
-	}
+	assert.Equal(t, "##", r.Header)
+	assert.Equal(t, "###", r.SectionHeader)
 }
 
 func TestNewRSTRelease(t *testing.T) {
 	r := NewRSTRelease("myname/myrepo")
-	if got, want := r.Header, "-"; got != want {
-		t.Errorf("r.Header == %q, want %q", got, want)
-	}
-	if got, want := r.SectionHeader, "^"; got != want {
-		t.Errorf("r.SectionHeader == %q, want %q", got, want)
-	}
+	assert.Equal(t, "-", r.Header)
+	assert.Equal(t, "^", r.SectionHeader)
 }

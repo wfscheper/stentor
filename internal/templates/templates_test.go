@@ -15,6 +15,8 @@ package templates
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLoad(t *testing.T) {
@@ -31,9 +33,7 @@ func TestLoad(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := New(tt.name)
-			if err != nil {
-				t.Errorf("New returned an error: %v", err)
-			}
+			assert.NoError(t, err)
 		})
 	}
 }
