@@ -1,1 +1,1 @@
-could not parse config file: (1, 6): was expecting token =, but got "is" instead
+could not parse config file: \(1, 6\): was expecting token =, but got "is" instead

@@ -77,6 +77,12 @@ func (s *Stentor) Run() int {
 		return succesfulExitCode
 	}
 
+	// determine path to config file
+	if !filepath.IsAbs(s.configFile) {
+		s.configFile = filepath.Join(s.WorkDir, s.configFile)
+		s.configFile = filepath.Clean(s.configFile)
+	}
+
 	// parse config file
 	data, err := ioutil.ReadFile(s.configFile)
 	if err != nil {
@@ -102,7 +108,7 @@ func (s *Stentor) parseFlags() error {
 	flags := flag.NewFlagSet(appName, flag.ContinueOnError)
 	flags.SetOutput(s.err.Writer())
 
-	flags.StringVar(&s.configFile, "config", filepath.Join(".stentor.d/stentor.toml"), "path to config file")
+	flags.StringVar(&s.configFile, "config", filepath.Join(".stentor.d", "stentor.toml"), "path to config file")
 	flags.BoolVar(&s.showVersion, "version", false, "show version information")
 
 	// setup usage information
