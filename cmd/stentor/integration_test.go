@@ -118,7 +118,6 @@ func runTest(name, relPath, wd string, run test.RunFunc) func(t *testing.T) {
 		}
 
 		if *test.UpdateGolden {
-			testCase.UpdateStderr(testEnv.GetStderr())
 			testCase.UpdateStdout(testEnv.GetStdout())
 		} else {
 			testCase.CompareError(err, testEnv.GetStderr())

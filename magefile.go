@@ -43,6 +43,11 @@ const (
 )
 
 var (
+	// Aliases for mage targets
+	Aliases = map[string]interface{}{
+		"tests": Test,
+	}
+
 	// Default mage target
 	Default = All
 

@@ -20,6 +20,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 	"testing"
@@ -77,24 +78,26 @@ func (c *Case) CompareOutput(stdout string) {
 
 // CompareError compares stderr to the contents of a stderr.txt file in the test directory.
 func (c *Case) CompareError(errIn error, stderr string) {
-	data, err := ioutil.ReadFile(filepath.Join(c.rootPath, "stderr.txt"))
-	if err != nil {
+	var want string
+	if data, err := ioutil.ReadFile(filepath.Join(c.rootPath, "stderr.txt")); err != nil {
 		if !os.IsNotExist(err) {
-			panic(err)
+			c.t.Fatal(err)
 		}
+	} else {
+		want = string(data)
 	}
 
-	want := string(data)
-	expectError := data != nil
+	pattern, err := regexp.Compile(want)
+	if err != nil {
+		c.t.Fatalf("could not parse stderr.txt: %v", err)
+	}
+
+	expectError := want != ""
 	gotError := stderr != "" && errIn != nil
 	switch {
 	case expectError && gotError:
-		switch matches := strings.Count(stderr, want); matches {
-		case 0:
-			c.t.Errorf("stderr did not contain the expected error:\n%s", diffErr(c.t, stderr, want))
-		case 1:
-		default:
-			c.t.Errorf("expected error '%s' occurred %d times in stderr\n%s", want, matches, stderr)
+		if match := pattern.FindString(stderr); match == "" {
+			c.t.Errorf("stderr did not match the expected error:\n%s", diffErr(c.t, stderr, want))
 		}
 	case expectError && !gotError:
 		c.t.Errorf("expected error:\n%s", want)
@@ -105,23 +108,6 @@ func (c *Case) CompareError(errIn error, stderr string) {
 
 func (c *Case) InitialPath() string {
 	return c.initialPath
-}
-
-// UpdateStderr updates the golden file for stderr with the working result.
-func (c *Case) UpdateStderr(stderr string) {
-	stderrPath := filepath.Join(c.rootPath, "stderr.txt")
-	_, err := os.Stat(stderrPath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			// Don't update the stdout.txt file if it doesn't exist.
-			return
-		}
-		panic(err)
-	}
-
-	if err := ioutil.WriteFile(stderrPath, []byte(stderr), 0644); err != nil {
-		c.t.Fatal(err)
-	}
 }
 
 // UpdateStdout updates the golden file for stdout with the working result.
