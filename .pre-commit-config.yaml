@@ -9,10 +9,11 @@ repos:
       - id: mixed-line-ending
       - id: trailing-whitespace
 
-  - repo: https://github.com/markdownlint/markdownlint
-    rev: v0.9.0
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.23.2
     hooks:
       - id: markdownlint
+        args: [--ignore=.stentor.d]
 
   - repo: https://github.com/adrienverge/yamllint
     rev: v1.23.0

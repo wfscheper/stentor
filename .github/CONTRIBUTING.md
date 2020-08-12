@@ -57,7 +57,7 @@ When writing tests, some guidelines that we suggest you follow are:
 
 - `stentor` uses [semantic newlines] in all documentation files and comments:
 
-  ```
+  ```text
   This is a sentence.
   This is another sentance,
   with a clause.
