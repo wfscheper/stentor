@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package stentor
+package release
 
 import (
 	"bytes"
@@ -20,7 +20,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/wfscheper/stentor/fragment"
 	"github.com/wfscheper/stentor/internal/templates"
+	"github.com/wfscheper/stentor/section"
 )
 
 func TestSectionTemplate(t *testing.T) {
@@ -34,7 +36,7 @@ func TestSectionTemplate(t *testing.T) {
 	}{
 		{
 			"github-markdown-section",
-			NewMarkdownRelease,
+			NewMarkdown,
 			"## [v0.2.0](https://github.com/myname/myrepo/compare/v0.1.0...v0.2.0) - 2020-01-02\n" +
 				"\n" +
 				"### Features\n" +
@@ -60,7 +62,7 @@ func TestSectionTemplate(t *testing.T) {
 		},
 		{
 			"github-rst-section",
-			NewRSTRelease,
+			NewRST,
 			"`v0.2.0 <https://github.com/myname/myrepo/compare/v0.1.0...v0.2.0>`_ - 2020-01-02\n" +
 				"----------------------\n" +
 				"\n" +
@@ -97,9 +99,9 @@ func TestSectionTemplate(t *testing.T) {
 			r.Date = time.Date(2020, 1, 2, 3, 4, 5, 6, time.UTC)
 			r.PreviousVersion = "v0.1.0"
 			r.Version = "v0.2.0"
-			r.Sections = []Section{
+			r.Sections = []section.Section{
 				{
-					Fragments: []Fragment{
+					Fragments: []fragment.Fragment{
 						{
 							Issue: "1",
 							Text:  "The foo feature.\n\nThis is an awesome feature.",
@@ -108,7 +110,7 @@ func TestSectionTemplate(t *testing.T) {
 					Title: "Features",
 				},
 				{
-					Fragments: []Fragment{
+					Fragments: []fragment.Fragment{
 						{
 							Issue: "2",
 							Text:  "Fix the bug in foo.",
@@ -133,19 +135,19 @@ func TestSectionTemplate(t *testing.T) {
 	}
 }
 
-func TestNewRelease(t *testing.T) {
-	r := NewRelease("myname/myrepo")
+func TestNew(t *testing.T) {
+	r := New("myname/myrepo")
 	assert.Equal(t, "myname/myrepo", r.Repository)
 }
 
-func TestNewMarkdownRelease(t *testing.T) {
-	r := NewMarkdownRelease("myname/myrepo")
+func TestNewMarkdown(t *testing.T) {
+	r := NewMarkdown("myname/myrepo")
 	assert.Equal(t, "##", r.Header)
 	assert.Equal(t, "###", r.SectionHeader)
 }
 
-func TestNewRSTRelease(t *testing.T) {
-	r := NewRSTRelease("myname/myrepo")
+func TestNewRST(t *testing.T) {
+	r := NewRST("myname/myrepo")
 	assert.Equal(t, "-", r.Header)
 	assert.Equal(t, "^", r.SectionHeader)
 }

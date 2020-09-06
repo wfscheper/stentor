@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package stentor
+package main
 
 import (
 	"bytes"
@@ -60,11 +60,6 @@ type Config struct {
 	// Sections define the different news sections.
 	// Sections will be listed in the order in which they are defined here.
 	Sections []SectionConfig `toml:"sections,omitempty"`
-}
-
-// Parse pares the string s into a Config.
-func Parse(s string) (*Config, error) {
-	return ParseBytes([]byte(s))
 }
 
 // ParseBytes parses bytes data into a Config.
@@ -145,15 +140,6 @@ func ValidateConfig(c *Config) error {
 		return ErrBadSections
 	}
 	return nil
-}
-
-// MustParse behaves the same as Parse, but panics if there is an error parsing the config file.
-func MustParse(s string) *Config {
-	c, err := Parse(s)
-	if err != nil {
-		panic(err)
-	}
-	return c
 }
 
 // Section represents a group of news items in a release.

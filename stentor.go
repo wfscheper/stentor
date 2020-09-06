@@ -1,0 +1,3 @@
+package stentor
+
+func Foo() {}
