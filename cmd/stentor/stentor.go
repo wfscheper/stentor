@@ -22,8 +22,6 @@ import (
 	"log"
 	"path/filepath"
 	"text/tabwriter"
-
-	"github.com/wfscheper/stentor"
 )
 
 const (
@@ -90,13 +88,13 @@ func (s *Stentor) Run() int {
 		return genericExitCode
 	}
 
-	cfg, err := stentor.ParseBytes(data)
+	cfg, err := ParseBytes(data)
 	if err != nil {
 		s.err.Printf("could not parse config file: %v", err)
 		return genericExitCode
 	}
 
-	if err := stentor.ValidateConfig(cfg); err != nil {
+	if err := ValidateConfig(cfg); err != nil {
 		s.err.Printf("invalid configuration: %v", err)
 		return genericExitCode
 	}
