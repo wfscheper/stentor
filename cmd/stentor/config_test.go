@@ -14,7 +14,6 @@
 package main
 
 import (
-	"bytes"
 	"strings"
 	"testing"
 
@@ -26,35 +25,51 @@ import (
 func TestConfig_marshal(t *testing.T) {
 	is := assert.New(t)
 
-	data, err := toml.Marshal(&tomlConfig{&Config{}})
-	if is.NoError(err) {
-		is.Equal("\n[stentor]\n", string(data))
+	if data, err := toml.Marshal(Config{}); is.NoError(err) {
+		is.Equal("", string(data))
 	}
 
-	input := `
+	u := Config{
+		FragmentDir: "fragments",
+		Hosting:     "hosting",
+		Markup:      "markup",
+		Repository:  "repo",
+		Sections: []SectionConfig{
+			{
+				Name:       "Name",
+				ShortName:  "name",
+				ShowAlways: func(b bool) *bool { return &b }(true),
+			},
+		},
+	}
+
+	wantTOML := `
+# Stentor configuration
 [stentor]
-fragment_dir = "fragments"
-hosting = "github"
-markup = "markdown"
-repository = "name/repo"
+  fragment_dir = "fragments"
+  hosting = "hosting"
+  markup = "markup"
+  repository = "repo"
 
-[[stentor.sections]]
-name = "Named"
-short_name = "name"
-show_always = true
+  [[stentor.sections]]
+    name = "Name"
+    short_name = "name"
+    show_always = true
 `
-	u, err := ParseBytes([]byte(input))
-	is.NoError(err)
 
-	buf := &bytes.Buffer{}
-	err = toml.NewEncoder(buf).Indentation("").Encode(&tomlConfig{u})
-	if is.NoError(err) {
-		is.Equal(input, buf.String())
+	var v Config
+	if err := toml.Unmarshal([]byte(wantTOML), &tomlConfig{&v}); is.NoError(err) {
+		is.Equal(u, v)
+	}
+
+	// marshal u and compare to input
+	if data, err := toml.Marshal(tomlConfig{&u}); is.NoError(err) {
+		is.Equal(wantTOML, string(data))
 	}
 }
 
 func Test_parseConfig(t *testing.T) {
-	defaultConfig := &Config{
+	defaultConfig := Config{
 		FragmentDir: ".stentor.d",
 		Hosting:     "github",
 		Markup:      "markdown",
@@ -110,7 +125,7 @@ func Test_validateConfig(t *testing.T) {
 	is := assert.New(t)
 
 	t.Run("invalid hosting", rapid.MakeCheck(func(t *rapid.T) {
-		c := &Config{
+		c := Config{
 			Repository: genRepository.Draw(t, "repository").(string),
 			Hosting:    rapid.String().Draw(t, "hosting").(string),
 			Markup:     genMarkup.Draw(t, "markup").(string),
@@ -119,7 +134,7 @@ func Test_validateConfig(t *testing.T) {
 	}))
 
 	t.Run("invalid markup", rapid.MakeCheck(func(t *rapid.T) {
-		c := &Config{
+		c := Config{
 			Hosting:    genHosting.Draw(t, "hosting").(string),
 			Markup:     rapid.String().Draw(t, "markup").(string),
 			Repository: genRepository.Draw(t, "repository").(string),
@@ -128,7 +143,7 @@ func Test_validateConfig(t *testing.T) {
 	}))
 
 	t.Run("invalid repository", rapid.MakeCheck(func(t *rapid.T) {
-		c := &Config{
+		c := Config{
 			Repository: rapid.String().Filter(func(s string) bool {
 				return strings.Count(s, "/") != 1
 			}).Draw(t, "repository").(string),
@@ -143,7 +158,7 @@ func Test_validateConfig(t *testing.T) {
 	}))
 
 	t.Run("no sections", rapid.MakeCheck(func(t *rapid.T) {
-		c := &Config{
+		c := Config{
 			Hosting:    genHosting.Draw(t, "hosting").(string),
 			Markup:     genMarkup.Draw(t, "markup").(string),
 			Repository: genRepository.Draw(t, "repository").(string),
