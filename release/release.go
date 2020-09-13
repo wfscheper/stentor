@@ -72,7 +72,7 @@ func newMarkdown(repo, version, previousVersion string) Release {
 // NewRSTRelease returns a Release with reStructuredText style Header and SectionHeader.
 func newRST(repo, version, previousVersion string) Release {
 	r := newRelease(repo, version, previousVersion)
-	r.Header = "-"
-	r.SectionHeader = "^"
+	r.Header = "="
+	r.SectionHeader = "-"
 	return r
 }

@@ -30,10 +30,12 @@ func TestConfig_marshal(t *testing.T) {
 	}
 
 	u := Config{
-		FragmentDir: "fragments",
-		Hosting:     "hosting",
-		Markup:      "markup",
-		Repository:  "repo",
+		FragmentDir:     "fragments",
+		HeaderTemplate:  "header",
+		Hosting:         "hosting",
+		Markup:          "markup",
+		Repository:      "repo",
+		SectionTemplate: "section",
 		Sections: []SectionConfig{
 			{
 				Name:       "Name",
@@ -47,9 +49,11 @@ func TestConfig_marshal(t *testing.T) {
 # Stentor configuration
 [stentor]
   fragment_dir = "fragments"
+  header_template = "header"
   hosting = "hosting"
   markup = "markup"
   repository = "repo"
+  section_template = "section"
 
   [[stentor.sections]]
     name = "Name"

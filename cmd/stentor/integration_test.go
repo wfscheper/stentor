@@ -61,8 +61,6 @@ func TestMain(m *testing.M) {
 
 // Entry point for running integration tests.
 func TestIntegration(t *testing.T) {
-	t.Parallel()
-
 	wd, err := os.Getwd()
 	if err != nil {
 		t.Fatal(err)
@@ -82,8 +80,6 @@ func TestIntegration(t *testing.T) {
 		// testName is the everything after "testdata/", excluding "testcase.json"
 		testName := strings.Join(segments[1:len(segments)-1], "/")
 		t.Run(testName, func(t *testing.T) {
-			t.Parallel()
-
 			t.Run("external", runTest(testName, relPath, wd, execCmd))
 			t.Run("internal", runTest(testName, relPath, wd, runMain))
 		})
@@ -96,8 +92,6 @@ func TestIntegration(t *testing.T) {
 
 func runTest(name, relPath, wd string, run test.RunFunc) func(t *testing.T) {
 	return func(t *testing.T) {
-		t.Parallel()
-
 		testCase := test.NewCase(t, filepath.Join(wd, relPath), name)
 
 		// Skip tests

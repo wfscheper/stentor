@@ -16,6 +16,7 @@ package test
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"io/ioutil"
 	"os"
@@ -63,9 +64,9 @@ func NewCase(t *testing.T, dir, name string) *Case {
 
 // CompareOutput compares stdout to the contents of a stdout.txt file in the test directory.
 func (c *Case) CompareOutput(stdout string) {
-	data, err := ioutil.ReadFile(filepath.Join(c.rootPath, "stdout.txt"))
+	data, err := ioutil.ReadFile(filepath.Join(c.rootPath, "stdout"))
 	if err != nil {
-		if os.IsNotExist(err) {
+		if os.IsNotExist(err) && stdout == "" {
 			return
 		}
 		panic(err)
@@ -78,18 +79,25 @@ func (c *Case) CompareOutput(stdout string) {
 
 // CompareError compares stderr to the contents of a stderr.txt file in the test directory.
 func (c *Case) CompareError(errIn error, stderr string) {
-	var want string
-	if data, err := ioutil.ReadFile(filepath.Join(c.rootPath, "stderr.txt")); err != nil {
-		if !os.IsNotExist(err) {
-			c.t.Fatal(err)
+	data, err := ioutil.ReadFile(filepath.Join(c.rootPath, "stderr"))
+	if err != nil {
+		if os.IsNotExist(err) && errIn == nil && stderr == "" {
+			return
 		}
-	} else {
-		want = string(data)
+		switch {
+		case stderr != "":
+			panic(errors.New(stderr))
+		case errIn != nil:
+			panic(errIn)
+		default:
+			panic(err)
+		}
 	}
 
+	want := string(data)
 	pattern, err := regexp.Compile(want)
 	if err != nil {
-		c.t.Fatalf("could not parse stderr.txt: %v", err)
+		c.t.Fatalf("could not parse stderr: %v", err)
 	}
 
 	expectError := want != ""

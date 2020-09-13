@@ -12,19 +12,29 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */ -}}
-{{- $r := . -}}
-{{ $r.Header }} [{{ $r.Version }}](https://github.com/{{ $r.Repository }}/compare/{{ $r.PreviousVersion }}...{{ $r.Version }}) - {{ $r.Date.Format "2006-01-02" }}
+{{- $repository := .Repository -}}
+{{- $sectionHeader := .SectionHeader -}}
 
-{{ range $r.Sections -}}
-{{ $r.SectionHeader }} {{ .Title }}
+{{ .Header }} [{{ .Version }}] - {{ .Date.Format "2006-01-02" }}
+{{- range .Sections -}}
+{{- if or .Fragments .ShowAlways }}
 
-{{ if .Fragments -}}
+{{ $sectionHeader }} {{ .Title }}
+
 {{ range .Fragments -}}
-- {{ .Text | indent 2  }}
-  [#{{ .Issue }}](https://github.com/{{ $r.Repository }}/issues/{{ .Issue }})
-{{ end }}
-{{ else if .ShowAlways -}}
+- {{ .Text | indent 2 }}
+  [#{{ .Issue }}](https://github.com/{{ $repository }}/issues/{{ .Issue }})
+{{ else -}}
+{{ if .ShowAlways -}}
 No significant changes.
-{{ end }}
-{{ end }}
+{{ end -}}
+{{ end -}}
+{{ end -}}
+{{- end }}
+
+[v0.2.0]: https://github.com/{{ .Repository }}/compare/{{ .PreviousVersion }}...{{ .Version }}
+
+
 ----
+
+
