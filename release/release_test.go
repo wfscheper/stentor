@@ -31,12 +31,12 @@ func TestSectionTemplate(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		releaseFunc func(string) *Release
+		releaseFunc func(string, string, string) Release
 		want        string
 	}{
 		{
 			"github-markdown-section",
-			NewMarkdown,
+			newMarkdown,
 			"## [v0.2.0](https://github.com/myname/myrepo/compare/v0.1.0...v0.2.0) - 2020-01-02\n" +
 				"\n" +
 				"### Features\n" +
@@ -62,7 +62,7 @@ func TestSectionTemplate(t *testing.T) {
 		},
 		{
 			"github-rst-section",
-			NewRST,
+			newRST,
 			"`v0.2.0 <https://github.com/myname/myrepo/compare/v0.1.0...v0.2.0>`_ - 2020-01-02\n" +
 				"----------------------\n" +
 				"\n" +
@@ -95,10 +95,8 @@ func TestSectionTemplate(t *testing.T) {
 	t.Parallel()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := tt.releaseFunc("myname/myrepo")
+			r := tt.releaseFunc("myname/myrepo", "v0.2.0", "v0.1.0")
 			r.Date = time.Date(2020, 1, 2, 3, 4, 5, 6, time.UTC)
-			r.PreviousVersion = "v0.1.0"
-			r.Version = "v0.2.0"
 			r.Sections = []section.Section{
 				{
 					Fragments: []fragment.Fragment{
@@ -135,19 +133,19 @@ func TestSectionTemplate(t *testing.T) {
 	}
 }
 
-func TestNew(t *testing.T) {
-	r := New("myname/myrepo")
+func Test_newRelease(t *testing.T) {
+	r := newRelease("myname/myrepo", "v0.2.0", "v0.1.0")
 	assert.Equal(t, "myname/myrepo", r.Repository)
 }
 
-func TestNewMarkdown(t *testing.T) {
-	r := NewMarkdown("myname/myrepo")
+func Test_newMarkdown(t *testing.T) {
+	r := newMarkdown("myname/myrepo", "v0.2.0", "v0.1.0")
 	assert.Equal(t, "##", r.Header)
 	assert.Equal(t, "###", r.SectionHeader)
 }
 
-func TestNewRST(t *testing.T) {
-	r := NewRST("myname/myrepo")
+func Test_newRST(t *testing.T) {
+	r := newRST("myname/myrepo", "v0.2.0", "v0.1.0")
 	assert.Equal(t, "-", r.Header)
 	assert.Equal(t, "^", r.SectionHeader)
 }
