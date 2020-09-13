@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	"github.com/pelletier/go-toml"
+	"github.com/wfscheper/stentor"
 )
 
 const (
@@ -38,7 +39,7 @@ var (
 )
 
 type tomlConfig struct {
-	Stentor *Config `toml:"stentor"`
+	Stentor *Config `toml:"stentor" comment:"Stentor configuration"`
 }
 
 // Config represents the project's configuration for stentor.
@@ -63,30 +64,32 @@ type Config struct {
 }
 
 // ParseBytes parses bytes data into a Config.
-func ParseBytes(data []byte) (*Config, error) {
+func ParseBytes(data []byte) (Config, error) {
 	c, err := parseConfig(data)
 	if err != nil {
-		return nil, err
+		return Config{}, err
 	}
 	return c, nil
 }
 
-func parseConfig(data []byte) (*Config, error) {
-	c := &Config{}
-	t := tomlConfig{c}
-	err := toml.NewDecoder(bytes.NewReader(data)).Strict(true).Decode(&t)
-	if err != nil {
-		return nil, err
+func parseConfig(data []byte) (Config, error) {
+	var c Config
+	if err := toml.NewDecoder(bytes.NewReader(data)).Strict(true).Decode(&tomlConfig{&c}); err != nil {
+		return Config{}, err
 	}
+
 	if c.FragmentDir == "" {
 		c.FragmentDir = DefaultConfigDir
 	}
+
 	if c.Hosting == "" {
-		c.Hosting = HostingGithub
+		c.Hosting = stentor.HostingGithub
 	}
+
 	if c.Markup == "" {
-		c.Markup = MarkupMarkdown
+		c.Markup = stentor.MarkupMD
 	}
+
 	if len(c.Sections) == 0 {
 		c.Sections = []SectionConfig{
 			{
@@ -115,10 +118,11 @@ func parseConfig(data []byte) (*Config, error) {
 			},
 		}
 	}
+
 	return c, nil
 }
 
-func ValidateConfig(c *Config) error {
+func ValidateConfig(c Config) error {
 	// repository must be non-empty
 	if c.Repository == "" {
 		return ErrMissingRepository
