@@ -159,7 +159,6 @@ func NewEnvironment(t *testing.T, rootPath, wd string, run RunFunc) *Environment
 
 func (te *Environment) Cleanup() {
 	_ = os.Chdir(te.wd)
-	_ = os.RemoveAll(te.tmpdir)
 }
 
 func (te *Environment) CopyTree(src string) {
@@ -167,6 +166,7 @@ func (te *Environment) CopyTree(src string) {
 		if err != nil {
 			return err
 		}
+
 		if p != src {
 			// strip src from path
 			localpath := p[len(src)+1:]
@@ -180,6 +180,7 @@ func (te *Environment) CopyTree(src string) {
 
 		return nil
 	})
+
 	if err != nil && !os.IsNotExist(err) {
 		te.t.Fatalf("could not copy %s: %v", src, err)
 	}
@@ -231,18 +232,15 @@ func (te *Environment) Run(progName string, args []string) error {
 
 func (te *Environment) makeTempDir() {
 	if te.tmpdir == "" {
-		var err error
-		te.tmpdir, err = ioutil.TempDir("", "stentor-")
-		if err != nil {
-			te.t.Fatal(err)
-		}
+		te.tmpdir = te.t.TempDir()
 
 		// OSX uses a symlink, so resolve the link
 		if runtime.GOOS == "darwin" {
-			te.tmpdir, err = filepath.EvalSymlinks(te.tmpdir)
+			real, err := filepath.EvalSymlinks(te.tmpdir)
 			if err != nil {
 				te.t.Fatal(err)
 			}
+			te.tmpdir = real
 		}
 	}
 }
