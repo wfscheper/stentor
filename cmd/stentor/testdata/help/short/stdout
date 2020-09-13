@@ -1,6 +1,6 @@
-Usage: stentor [OPTIONS]
+Usage: stentor [OPTIONS] NEW PREVIOUS
 
-stentor is a CLI for generating a change log or release notes from a set of fragment files and templates.
+Update a news file with the changes from version PREVIOUS to NEW.
 
 Flags:
 

@@ -45,6 +45,11 @@ func New(name string) (*template.Template, error) {
 	return template.New(name).Funcs(funcMap).Parse(templateStr)
 }
 
+// Parse returns the template parsed from file fn
+func Parse(fn string) (*template.Template, error) {
+	return template.ParseFiles(fn)
+}
+
 // template functions
 
 // indent pads every line in s after the first with n spaces.

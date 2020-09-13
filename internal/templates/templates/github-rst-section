@@ -12,22 +12,32 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */ -}}
-{{- $r := . -}}
-{{- $date := $r.Date.Format "2006-01-02" -}}
-`{{ $r.Version }} <https://github.com/{{ $r.Repository }}/compare/{{ $r.PreviousVersion }}...{{ $r.Version }}>`_ - {{ $date }}
-{{ $r.Header | repeat (sum (len $r.Version) (len $date) 6) }}
+{{- $repository := .Repository -}}
+{{- $sectionHeader := .SectionHeader -}}
+{{- $date := .Date.Format "2006-01-02" -}}
 
-{{ range $r.Sections -}}
+`{{ .Version }}`_ - {{ $date }}
+{{ .Header | repeat (sum (len .Version) (len $date) 6) }}
+{{- range .Sections -}}
+{{- if or .Fragments .ShowAlways }}
+
 {{ .Title }}
-{{ $r.SectionHeader | repeat (len .Title) }}
+{{ $sectionHeader | repeat (len .Title) }}
 
-{{ if .Fragments -}}
 {{ range .Fragments -}}
 - {{ .Text | indent 2 }}
-  `#{{ .Issue }} <https://github.com/{{ $r.Repository }}/issues/{{ .Issue }}>`_
-{{ end }}
-{{ else if .ShowAlways -}}
+  `#{{ .Issue }} <https://github.com/{{ $repository }}/issues/{{ .Issue }}>`_
+{{ else -}}
+{{ if .ShowAlways -}}
 No significant changes.
-{{ end }}
-{{ end }}
+{{ end -}}
+{{ end -}}
+{{ end -}}
+{{- end }}
+
+.. _v0.2.0: https://github.com/{{ .Repository }}/compare/{{ .PreviousVersion }}...{{ .Version }}
+
+
 ----
+
+

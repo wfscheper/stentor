@@ -22,6 +22,13 @@ import (
 	"log"
 	"path/filepath"
 	"text/tabwriter"
+	"text/template"
+
+	"github.com/wfscheper/stentor"
+	"github.com/wfscheper/stentor/fragment"
+	"github.com/wfscheper/stentor/internal/templates"
+	"github.com/wfscheper/stentor/release"
+	"github.com/wfscheper/stentor/section"
 )
 
 const (
@@ -55,14 +62,14 @@ func New(wd string, args, env []string, err, out io.Writer) Exec {
 		Args:    args,
 		Env:     env,
 		WorkDir: wd,
-		err:     log.New(err, "", 0),
+		err:     log.New(err, appName+": ", 0),
 		out:     log.New(out, "", 0),
 	}
 }
 
 func (e Exec) Run() int {
 	// parse flags
-	e, _, err := e.parseFlags()
+	e, fs, err := e.parseFlags()
 	if err != nil {
 		if err == flag.ErrHelp {
 			return succesfulExitCode
@@ -83,11 +90,65 @@ func (e Exec) Run() int {
 	}
 
 	// parse config file
-	_, err = e.readConfig(e.configFile)
+	cfg, err := e.readConfig(e.configFile)
 	if err != nil {
 		e.err.Println(err)
 		return genericExitCode
 	}
+
+	if len(fs.Args()) > 2 {
+		e.err.Println("too many arguments")
+		return genericExitCode
+	}
+
+	version := fs.Arg(0)
+	if version == "" {
+		e.err.Println("missing NEW argument")
+		return genericExitCode
+	}
+
+	previousVersion := fs.Arg(1)
+	if previousVersion == "" {
+		e.err.Println("missing PREVIOUS argument")
+		return genericExitCode
+	}
+
+	var fragmentFiles []string
+	switch cfg.Markup {
+	case stentor.MarkupMD:
+		fragmentFiles, _ = filepath.Glob(filepath.Join(cfg.FragmentDir, "*.md"))
+	case stentor.MarkupRST:
+		fragmentFiles, _ = filepath.Glob(filepath.Join(cfg.FragmentDir, "*.rst"))
+	}
+
+	// if there are no fragments, and no show always sections then exit
+	if len(fragmentFiles) == 0 {
+		var exit bool = true
+		for _, s := range cfg.Sections {
+			if s.ShowAlways != nil && *s.ShowAlways {
+				exit = false
+				break
+			}
+		}
+		if exit {
+			return succesfulExitCode
+		}
+	}
+
+	r := release.New(cfg.Repository, cfg.Markup, version, previousVersion)
+	r, err = configureSections(r, cfg.Sections, fragmentFiles)
+	if err != nil {
+		e.err.Println(err)
+		return genericExitCode
+	}
+
+	buf := &bytes.Buffer{}
+	if err := generateRelease(buf, cfg, r); err != nil {
+		e.err.Println(err)
+		return genericExitCode
+	}
+
+	e.out.Print(buf.String())
 
 	return succesfulExitCode
 }
@@ -148,12 +209,70 @@ func (e Exec) setUsage(fs *flag.FlagSet) {
 
 	tw.Flush()
 	fs.Usage = func() {
-		e.out.Printf(`Usage: %[1]s [OPTIONS]
+		e.out.Printf(`Usage: %[1]s [OPTIONS] NEW PREVIOUS
 
-%[1]s is a CLI for generating a change log or release notes from a set of fragment files and templates.
+Update a news file with the changes from version PREVIOUS to NEW.
 
 Flags:
 
 %s`, appName, flagsUsage.String())
 	}
+}
+
+func configureSections(r release.Release, sections []SectionConfig, fragmentFiles []string) (release.Release, error) {
+	sectionMap := map[string]section.Section{}
+	for _, fragmentFile := range fragmentFiles {
+		f, section, err := fragment.New(fragmentFile)
+		if err != nil {
+			return r, err
+		}
+
+		s := sectionMap[section]
+		s.Fragments = append(s.Fragments, f)
+		sectionMap[section] = s
+	}
+
+	for _, cfg := range sections {
+		if s, ok := sectionMap[cfg.ShortName]; ok {
+			s.ShowAlways = *cfg.ShowAlways
+			s.Title = cfg.Name
+			r.Sections = append(r.Sections, s)
+		} else if *cfg.ShowAlways {
+			r.Sections = append(r.Sections, section.Section{
+				ShowAlways: *cfg.ShowAlways,
+				Title:      cfg.Name,
+			})
+		}
+	}
+
+	return r, nil
+}
+
+func generateRelease(w io.Writer, cfg Config, r release.Release) error {
+	var loadTemplate = func(name, fallback string) (*template.Template, error) {
+		if name != "" {
+			return templates.Parse(name)
+		}
+		return templates.New(fallback)
+	}
+
+	headerTemplate, err := loadTemplate(cfg.HeaderTemplate, cfg.Hosting+"-"+cfg.Markup+"-header")
+	if err != nil {
+		return fmt.Errorf("cannot parse header template: %w", err)
+	}
+
+	sectionTemplate, err := loadTemplate(cfg.SectionTemplate, cfg.Hosting+"-"+cfg.Markup+"-section")
+	if err != nil {
+		return fmt.Errorf("cannot parse section template: %w", err)
+	}
+
+	if err := headerTemplate.Execute(w, r); err != nil {
+		return fmt.Errorf("cannot render header template: %w", err)
+	}
+
+	if err := sectionTemplate.Execute(w, r); err != nil {
+		return fmt.Errorf("cannot render section template: %w", err)
+	}
+
+	return nil
 }

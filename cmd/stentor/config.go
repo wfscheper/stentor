@@ -61,6 +61,10 @@ type Config struct {
 	// Sections define the different news sections.
 	// Sections will be listed in the order in which they are defined here.
 	Sections []SectionConfig `toml:"sections,omitempty"`
+	// HeaderTemplate is the name of the template used to render the header of the news file.
+	HeaderTemplate string `toml:"header_template,omitempty"`
+	// SectionTemplate is the name of the template used to render the individual sections of the news file.
+	SectionTemplate string `toml:"section_template,omitempty"`
 }
 
 // ParseBytes parses bytes data into a Config.

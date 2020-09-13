@@ -1,3 +1,3 @@
 {
-  "command": [["-config", "other.toml"]]
+  "command": [["-config", "other.toml", "v0.2.0", "v0.1.0"]]
 }

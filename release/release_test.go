@@ -37,7 +37,7 @@ func TestSectionTemplate(t *testing.T) {
 		{
 			"github-markdown-section",
 			newMarkdown,
-			"## [v0.2.0](https://github.com/myname/myrepo/compare/v0.1.0...v0.2.0) - 2020-01-02\n" +
+			"## [v0.2.0] - 2020-01-02\n" +
 				"\n" +
 				"### Features\n" +
 				"\n" +
@@ -58,16 +58,21 @@ func TestSectionTemplate(t *testing.T) {
 				"No significant changes.\n" +
 				"\n" +
 				"\n" +
-				"----\n",
+				"[v0.2.0]: https://github.com/myname/myrepo/compare/v0.1.0...v0.2.0\n" +
+				"\n" +
+				"\n" +
+				"----\n" +
+				"\n" +
+				"\n",
 		},
 		{
 			"github-rst-section",
 			newRST,
-			"`v0.2.0 <https://github.com/myname/myrepo/compare/v0.1.0...v0.2.0>`_ - 2020-01-02\n" +
-				"----------------------\n" +
+			"`v0.2.0`_ - 2020-01-02\n" +
+				"======================\n" +
 				"\n" +
 				"Features\n" +
-				"^^^^^^^^\n" +
+				"--------\n" +
 				"\n" +
 				"- The foo feature.\n" +
 				"\n" +
@@ -76,19 +81,24 @@ func TestSectionTemplate(t *testing.T) {
 				"\n" +
 				"\n" +
 				"Bug Fixes\n" +
-				"^^^^^^^^^\n" +
+				"---------\n" +
 				"\n" +
 				"- Fix the bug in foo.\n" +
 				"  `#2 <https://github.com/myname/myrepo/issues/2>`_\n" +
 				"\n" +
 				"\n" +
 				"Always Show\n" +
-				"^^^^^^^^^^^\n" +
+				"-----------\n" +
 				"\n" +
 				"No significant changes.\n" +
 				"\n" +
 				"\n" +
-				"----\n",
+				".. _v0.2.0: https://github.com/myname/myrepo/compare/v0.1.0...v0.2.0\n" +
+				"\n" +
+				"\n" +
+				"----\n" +
+				"\n" +
+				"\n",
 		},
 	}
 
@@ -146,6 +156,6 @@ func Test_newMarkdown(t *testing.T) {
 
 func Test_newRST(t *testing.T) {
 	r := newRST("myname/myrepo", "v0.2.0", "v0.1.0")
-	assert.Equal(t, "-", r.Header)
-	assert.Equal(t, "^", r.SectionHeader)
+	assert.Equal(t, "=", r.Header)
+	assert.Equal(t, "-", r.SectionHeader)
 }

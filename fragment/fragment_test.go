@@ -11,7 +11,7 @@ import (
 
 func TestNew(t *testing.T) {
 	tmpdir := t.TempDir()
-	fn := filepath.Join(tmpdir, "ticket.section.md")
+	fn := filepath.Join(tmpdir, "section.summary.ticket.md")
 	err := ioutil.WriteFile(fn, []byte(`contents`), 0600)
 	require.NoError(t, err)
 
@@ -28,16 +28,14 @@ func TestNew_error(t *testing.T) {
 		name string
 		want string
 	}{
-		{"ticket.section.more.md", "'ticket.section.more.md' is not a valid fragment file: too many parts."},
+		{"section.summary.ticket.more.md", "'section.summary.ticket.more.md' is not a valid fragment file: too many parts"},
 		{"ticket.section", "'ticket.section' is not a valid fragment file: not enough parts"},
-		{"ticket..md", "'ticket..md' is not a valid fragment file: empty section"},
-		{".section.md", "'.section.md' is not a valid fragment file: empty issue"},
+		{".summary.ticket.md", "'.summary.ticket.md' is not a valid fragment file: empty section"},
+		{"section.summary..md", "'section.summary..md' is not a valid fragment file: empty issue"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
 			tmpdir := t.TempDir()
 			fn := filepath.Join(tmpdir, tt.name)
 			err := ioutil.WriteFile(fn, []byte(`contents`), 0600)

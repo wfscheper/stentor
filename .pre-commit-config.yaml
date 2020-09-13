@@ -6,6 +6,7 @@ repos:
       - id: check-merge-conflict
       - id: detect-private-key
       - id: end-of-file-fixer
+        exclude: ^internal/templates/templates/
       - id: mixed-line-ending
       - id: trailing-whitespace
 
