@@ -36,7 +36,7 @@ var (
 	version   = "dev"
 )
 
-type Stentor struct {
+type Exec struct {
 	Args    []string // command-line arguments
 	Env     []string // os environment
 	WorkDir string   // Where to execute
@@ -50,8 +50,8 @@ type Stentor struct {
 	showVersion bool
 }
 
-func New(wd string, args, env []string, err, out io.Writer) *Stentor {
-	return &Stentor{
+func New(wd string, args, env []string, err, out io.Writer) Exec {
+	return Exec{
 		Args:    args,
 		Env:     env,
 		WorkDir: wd,
@@ -60,9 +60,10 @@ func New(wd string, args, env []string, err, out io.Writer) *Stentor {
 	}
 }
 
-func (s *Stentor) Run() int {
+func (e Exec) Run() int {
 	// parse flags
-	if err := s.parseFlags(); err != nil {
+	e, _, err := e.parseFlags()
+	if err != nil {
 		if err == flag.ErrHelp {
 			return succesfulExitCode
 		}
@@ -70,61 +71,68 @@ func (s *Stentor) Run() int {
 	}
 
 	// show version and exit
-	if s.showVersion {
-		s.displayVersion()
+	if e.showVersion {
+		e.displayVersion()
 		return succesfulExitCode
 	}
 
 	// determine path to config file
-	if !filepath.IsAbs(s.configFile) {
-		s.configFile = filepath.Join(s.WorkDir, s.configFile)
-		s.configFile = filepath.Clean(s.configFile)
+	if !filepath.IsAbs(e.configFile) {
+		e.configFile = filepath.Join(e.WorkDir, e.configFile)
+		e.configFile = filepath.Clean(e.configFile)
 	}
 
 	// parse config file
-	data, err := ioutil.ReadFile(s.configFile)
+	_, err = e.readConfig(e.configFile)
 	if err != nil {
-		s.err.Printf("could not read config files: %v", err)
-		return genericExitCode
-	}
-
-	cfg, err := ParseBytes(data)
-	if err != nil {
-		s.err.Printf("could not parse config file: %v", err)
-		return genericExitCode
-	}
-
-	if err := ValidateConfig(cfg); err != nil {
-		s.err.Printf("invalid configuration: %v", err)
+		e.err.Println(err)
 		return genericExitCode
 	}
 
 	return succesfulExitCode
 }
 
-func (s *Stentor) parseFlags() error {
+func (e Exec) parseFlags() (Exec, *flag.FlagSet, error) {
 	flags := flag.NewFlagSet(appName, flag.ContinueOnError)
-	flags.SetOutput(s.err.Writer())
+	flags.SetOutput(e.err.Writer())
 
-	flags.StringVar(&s.configFile, "config", filepath.Join(".stentor.d", "stentor.toml"), "path to config file")
-	flags.BoolVar(&s.showVersion, "version", false, "show version information")
+	flags.StringVar(&e.configFile, "config", filepath.Join(".stentor.d", "stentor.toml"), "path to config file")
+	flags.BoolVar(&e.showVersion, "version", false, "show version information")
 
 	// setup usage information
-	s.setUsage(flags)
+	e.setUsage(flags)
 
 	// parse command line arguments
-	if err := flags.Parse(s.Args[1:]); err != nil {
-		return err
+	if err := flags.Parse(e.Args[1:]); err != nil {
+		return e, nil, err
 	}
 
-	return nil
+	return e, flags, nil
 }
 
-func (s *Stentor) displayVersion() {
-	s.out.Printf("%s %s built from %s on %s\n", appName, version, commit, buildDate)
+func (e Exec) displayVersion() {
+	e.out.Printf("%s %s built from %s on %s\n", appName, version, commit, buildDate)
 }
 
-func (s *Stentor) setUsage(fs *flag.FlagSet) {
+func (Exec) readConfig(fn string) (Config, error) {
+	data, err := ioutil.ReadFile(fn)
+	if err != nil {
+		return Config{}, fmt.Errorf("could not read config files: %w", err)
+	}
+
+	cfg, err := ParseBytes(data)
+	if err != nil {
+		return cfg, fmt.Errorf("could not parse config file: %w", err)
+	}
+
+	if err := ValidateConfig(cfg); err != nil {
+		return cfg, fmt.Errorf("invalid configuration: %w", err)
+	}
+
+	return cfg, nil
+}
+
+func (e Exec) setUsage(fs *flag.FlagSet) {
 	var flagsUsage bytes.Buffer
 	tw := tabwriter.NewWriter(&flagsUsage, 0, 4, 2, ' ', 0)
 	fs.VisitAll(func(f *flag.Flag) {
@@ -140,7 +148,7 @@ func (s *Stentor) setUsage(fs *flag.FlagSet) {
 
 	tw.Flush()
 	fs.Usage = func() {
-		s.out.Printf(`Usage: %[1]s [OPTIONS]
+		e.out.Printf(`Usage: %[1]s [OPTIONS]
 
 %[1]s is a CLI for generating a change log or release notes from a set of fragment files and templates.
 
