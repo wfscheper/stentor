@@ -16,6 +16,7 @@ package release
 import (
 	"time"
 
+	"github.com/wfscheper/stentor"
 	"github.com/wfscheper/stentor/section"
 )
 
@@ -40,24 +41,37 @@ type Release struct {
 // NewRelease returns a simple Release.
 //
 // The caller is responsible for defining the Header and SectionHeader.
-func New(repo string) *Release {
-	return &Release{
-		Date:       time.Now().UTC(),
-		Repository: repo,
+func New(repo, markup, version, previousVersion string) Release {
+	switch markup {
+	case stentor.MarkupMD:
+		return newMarkdown(repo, version, previousVersion)
+	case stentor.MarkupRST:
+		return newRST(repo, version, previousVersion)
+	default:
+		return newRelease(repo, version, previousVersion)
+	}
+}
+
+func newRelease(repo, version, previousVersion string) Release {
+	return Release{
+		Date:            time.Now().UTC(),
+		Repository:      repo,
+		PreviousVersion: previousVersion,
+		Version:         version,
 	}
 }
 
 // NewMarkdownRelease returns a Release with markdown style Header and SectionHeader.
-func NewMarkdown(repo string) *Release {
-	r := New(repo)
+func newMarkdown(repo, version, previousVersion string) Release {
+	r := newRelease(repo, version, previousVersion)
 	r.Header = "##"
 	r.SectionHeader = "###"
 	return r
 }
 
 // NewRSTRelease returns a Release with reStructuredText style Header and SectionHeader.
-func NewRST(repo string) *Release {
-	r := New(repo)
+func newRST(repo, version, previousVersion string) Release {
+	r := newRelease(repo, version, previousVersion)
 	r.Header = "-"
 	r.SectionHeader = "^"
 	return r
