@@ -11,3 +11,8 @@ const (
 	MarkupMD  = "markdown"
 	MarkupRST = "rst"
 )
+
+const (
+	CommentMD  = "<!-- stentor output starts -->\n"
+	CommentRST = ".. stentor output starts\n"
+)

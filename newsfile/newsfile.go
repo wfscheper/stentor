@@ -8,14 +8,11 @@ import (
 	"os"
 )
 
-var (
-	startCommentRST      = ".. stentor output starts\n"
-	startCommentMarkdown = "<!-- stentor output starts -->\n"
-
+const (
 	readLength = 1024
 )
 
-func WriteFragments(fn string, startComment, data []byte) error {
+func WriteFragments(fn, startComment string, data []byte) error {
 	tf, err := writeFragments(fn, startComment, data)
 	if err != nil {
 		return err
@@ -30,18 +27,27 @@ func WriteFragments(fn string, startComment, data []byte) error {
 	return nil
 }
 
-func writeFragments(fn string, startComment, data []byte) (string, error) {
-	src, err := os.Open(fn)
-	if err != nil {
-		return "", err
-	}
-	defer src.Close()
-
+func writeFragments(fn, startComment string, data []byte) (string, error) {
 	dst, err := ioutil.TempFile("", "")
 	if err != nil {
 		return "", err
 	}
 	defer dst.Close()
+
+	src, err := os.Open(fn)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return "", err
+		}
+
+		// news file doesn't exist, so just write data to it
+		if _, err := dst.Write(data); err != nil {
+			return "", err
+		}
+
+		return dst.Name(), nil
+	}
+	defer src.Close()
 
 	if err := copyIntoFile(dst, src, startComment, data); err != nil {
 		return "", err
@@ -51,7 +57,7 @@ func writeFragments(fn string, startComment, data []byte) (string, error) {
 }
 
 // nolint:gocognit // try to simplify this at some point
-func copyIntoFile(dst io.Writer, src io.Reader, startComment, data []byte) error {
+func copyIntoFile(dst io.Writer, src io.Reader, startComment string, data []byte) error {
 	var partialBuf []byte = make([]byte, 0)
 	var dataWritten bool
 	for {
@@ -73,7 +79,7 @@ func copyIntoFile(dst io.Writer, src io.Reader, startComment, data []byte) error
 
 		if !dataWritten {
 			// find index of startComment
-			idx := bytes.Index(readBuf, startComment)
+			idx := bytes.Index(readBuf, []byte(startComment))
 			if idx >= 0 {
 				// splice in data
 				idx += len(startComment)
