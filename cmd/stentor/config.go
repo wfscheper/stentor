@@ -16,6 +16,8 @@ package main
 import (
 	"bytes"
 	"errors"
+	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/pelletier/go-toml"
@@ -65,6 +67,8 @@ type Config struct {
 	HeaderTemplate string `toml:"header_template,omitempty"`
 	// SectionTemplate is the name of the template used to render the individual sections of the news file.
 	SectionTemplate string `toml:"section_template,omitempty"`
+	// NewsFile is the name of the file to update
+	NewsFile string `toml:"news_file,omitempty"`
 }
 
 // ParseBytes parses bytes data into a Config.
@@ -92,6 +96,18 @@ func parseConfig(data []byte) (Config, error) {
 
 	if c.Markup == "" {
 		c.Markup = stentor.MarkupMD
+	}
+
+	if c.NewsFile == "" {
+		c.NewsFile = "CHANGELOG"
+		switch c.Markup {
+		case stentor.MarkupMD:
+			c.NewsFile += ".md"
+		case stentor.MarkupRST:
+			c.NewsFile += ".rst"
+		default:
+			return Config{}, fmt.Errorf("unrecognized markup: %s", c.Markup)
+		}
 	}
 
 	if len(c.Sections) == 0 {
@@ -148,6 +164,31 @@ func ValidateConfig(c Config) error {
 		return ErrBadSections
 	}
 	return nil
+}
+
+func (c Config) FragmentFiles() ([]string, error) {
+	var glob string
+	switch c.Markup {
+	case stentor.MarkupMD:
+		glob = "*.md"
+	case stentor.MarkupRST:
+		glob = "*.rst"
+	default:
+		return nil, fmt.Errorf("unknown markup %s", c.Markup)
+	}
+
+	return filepath.Glob(filepath.Join(c.FragmentDir, glob))
+}
+
+func (c Config) StartComment() string {
+	switch c.Markup {
+	case stentor.MarkupMD:
+		return stentor.CommentMD
+	case stentor.MarkupRST:
+		return stentor.CommentRST
+	default:
+		return ""
+	}
 }
 
 // Section represents a group of news items in a release.

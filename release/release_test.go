@@ -51,6 +51,7 @@ func TestSectionTemplate(t *testing.T) {
 				"\n" +
 				"- Fix the bug in foo.\n" +
 				"  [#2](https://github.com/myname/myrepo/issues/2)\n" +
+				"- Multiple other things.\n" +
 				"\n" +
 				"\n" +
 				"### Always Show\n" +
@@ -62,7 +63,6 @@ func TestSectionTemplate(t *testing.T) {
 				"\n" +
 				"\n" +
 				"----\n" +
-				"\n" +
 				"\n",
 		},
 		{
@@ -85,6 +85,7 @@ func TestSectionTemplate(t *testing.T) {
 				"\n" +
 				"- Fix the bug in foo.\n" +
 				"  `#2 <https://github.com/myname/myrepo/issues/2>`_\n" +
+				"- Multiple other things.\n" +
 				"\n" +
 				"\n" +
 				"Always Show\n" +
@@ -97,7 +98,6 @@ func TestSectionTemplate(t *testing.T) {
 				"\n" +
 				"\n" +
 				"----\n" +
-				"\n" +
 				"\n",
 		},
 	}
@@ -122,6 +122,9 @@ func TestSectionTemplate(t *testing.T) {
 						{
 							Issue: "2",
 							Text:  "Fix the bug in foo.",
+						},
+						{
+							Text: "Multiple other things.",
 						},
 					},
 					Title: "Bug Fixes",

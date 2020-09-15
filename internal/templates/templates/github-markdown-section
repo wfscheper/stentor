@@ -22,8 +22,8 @@
 {{ $sectionHeader }} {{ .Title }}
 
 {{ range .Fragments -}}
-- {{ .Text | indent 2 }}
-  [#{{ .Issue }}](https://github.com/{{ $repository }}/issues/{{ .Issue }})
+- {{ .Text | indent 2 }}{{ if .Issue }}
+  [#{{ .Issue }}](https://github.com/{{ $repository }}/issues/{{ .Issue }}){{ end }}
 {{ else -}}
 {{ if .ShowAlways -}}
 No significant changes.
@@ -32,9 +32,8 @@ No significant changes.
 {{ end -}}
 {{- end }}
 
-[v0.2.0]: https://github.com/{{ .Repository }}/compare/{{ .PreviousVersion }}...{{ .Version }}
+[{{ .Version }}]: https://github.com/{{ .Repository }}/compare/{{ .PreviousVersion }}...{{ .Version }}
 
 
 ----
-
 

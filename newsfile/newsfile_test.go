@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/wfscheper/stentor"
 	"pgregory.net/rapid"
 )
 
@@ -29,7 +30,7 @@ func TestWriteFragments(t *testing.T) {
 	err = ioutil.WriteFile(fn, []byte("some text\n\n.. stentor output starts\n\nsome more text\n"), 0600)
 	must.NoError(err)
 
-	if err := WriteFragments(fn, []byte(startCommentRST), []byte("\nadded data")); is.NoError(err) {
+	if err := WriteFragments(fn, stentor.CommentRST, []byte("\nadded data")); is.NoError(err) {
 		data, err := ioutil.ReadFile(fn)
 		must.NoError(err)
 		is.Equal("some text\n\n.. stentor output starts\n\nadded data\nsome more text\n", string(data))
@@ -40,7 +41,7 @@ func Test_copyIntoFile(t *testing.T) {
 	t.Parallel()
 
 	t.Run("comment exists", rapid.MakeCheck(func(t *rapid.T) {
-		startComment := rapid.SampledFrom([]string{startCommentMarkdown, startCommentRST}).
+		startComment := rapid.SampledFrom([]string{stentor.CommentMD, stentor.CommentRST}).
 			Draw(t, "startComment").(string)
 		header := rapid.StringN(512, 1024, -1).Draw(t, "header").(string)
 		trailer := rapid.StringN(512, 1024, -1).Draw(t, "trailer").(string)
@@ -48,13 +49,13 @@ func Test_copyIntoFile(t *testing.T) {
 		dst := &bytes.Buffer{}
 		data := rapid.String().Draw(t, "data").(string)
 
-		if err := copyIntoFile(dst, src, []byte(startComment), []byte(data)); assert.NoError(t, err) {
+		if err := copyIntoFile(dst, src, startComment, []byte(data)); assert.NoError(t, err) {
 			assert.Equal(t, header+startComment+data+trailer, dst.String())
 		}
 	}))
 
 	t.Run("no comment exists", rapid.MakeCheck(func(t *rapid.T) {
-		startComment := rapid.SampledFrom([]string{startCommentMarkdown, startCommentRST}).
+		startComment := rapid.SampledFrom([]string{stentor.CommentMD, stentor.CommentRST}).
 			Draw(t, "startComment").(string)
 		header := rapid.StringN(512, 1024, -1).Draw(t, "header").(string)
 		trailer := rapid.StringN(512, 1024, -1).Draw(t, "trailer").(string)
@@ -62,7 +63,7 @@ func Test_copyIntoFile(t *testing.T) {
 		dst := &bytes.Buffer{}
 		data := rapid.String().Draw(t, "data").(string)
 
-		err := copyIntoFile(dst, src, []byte(startComment), []byte(data))
+		err := copyIntoFile(dst, src, startComment, []byte(data))
 		assert.EqualError(t, err, "no start comment found")
 	}))
 }

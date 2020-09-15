@@ -20,13 +20,14 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 	"text/tabwriter"
 	"text/template"
 
-	"github.com/wfscheper/stentor"
 	"github.com/wfscheper/stentor/fragment"
 	"github.com/wfscheper/stentor/internal/templates"
+	"github.com/wfscheper/stentor/newsfile"
 	"github.com/wfscheper/stentor/release"
 	"github.com/wfscheper/stentor/section"
 )
@@ -54,6 +55,7 @@ type Exec struct {
 
 	// command-line options
 	configFile  string
+	release     bool
 	showVersion bool
 }
 
@@ -113,12 +115,10 @@ func (e Exec) Run() int {
 		return genericExitCode
 	}
 
-	var fragmentFiles []string
-	switch cfg.Markup {
-	case stentor.MarkupMD:
-		fragmentFiles, _ = filepath.Glob(filepath.Join(cfg.FragmentDir, "*.md"))
-	case stentor.MarkupRST:
-		fragmentFiles, _ = filepath.Glob(filepath.Join(cfg.FragmentDir, "*.rst"))
+	fragmentFiles, err := cfg.FragmentFiles()
+	if err != nil {
+		e.err.Println(err)
+		return genericExitCode
 	}
 
 	// if there are no fragments, and no show always sections then exit
@@ -148,8 +148,27 @@ func (e Exec) Run() int {
 		return genericExitCode
 	}
 
-	e.out.Print(buf.String())
+	if !e.release {
+		e.out.Print(buf.String())
+		return succesfulExitCode
+	}
 
+	if err := newsfile.WriteFragments(cfg.NewsFile, cfg.StartComment(), buf.Bytes()); err != nil {
+		e.err.Printf("cannot update %s: %v", cfg.NewsFile, err)
+		return genericExitCode
+	}
+
+	var failed bool
+	for _, f := range fragmentFiles {
+		if err := os.Remove(f); err != nil {
+			e.err.Printf("cannot remove fragment file %s: %v", f, err)
+			failed = true
+		}
+	}
+
+	if failed {
+		return genericExitCode
+	}
 	return succesfulExitCode
 }
 
@@ -158,6 +177,7 @@ func (e Exec) parseFlags() (Exec, *flag.FlagSet, error) {
 	flags.SetOutput(e.err.Writer())
 
 	flags.StringVar(&e.configFile, "config", filepath.Join(".stentor.d", "stentor.toml"), "path to config file")
+	flags.BoolVar(&e.release, "release", false, "update newsfile with fragments")
 	flags.BoolVar(&e.showVersion, "version", false, "show version information")
 
 	// setup usage information
@@ -234,10 +254,12 @@ func configureSections(r release.Release, sections []SectionConfig, fragmentFile
 
 	for _, cfg := range sections {
 		if s, ok := sectionMap[cfg.ShortName]; ok {
-			s.ShowAlways = *cfg.ShowAlways
+			if cfg.ShowAlways != nil {
+				s.ShowAlways = *cfg.ShowAlways
+			}
 			s.Title = cfg.Name
 			r.Sections = append(r.Sections, s)
-		} else if *cfg.ShowAlways {
+		} else if cfg.ShowAlways != nil && *cfg.ShowAlways {
 			r.Sections = append(r.Sections, section.Section{
 				ShowAlways: *cfg.ShowAlways,
 				Title:      cfg.Name,

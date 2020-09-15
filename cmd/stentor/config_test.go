@@ -34,6 +34,7 @@ func TestConfig_marshal(t *testing.T) {
 		HeaderTemplate:  "header",
 		Hosting:         "hosting",
 		Markup:          "markup",
+		NewsFile:        "news",
 		Repository:      "repo",
 		SectionTemplate: "section",
 		Sections: []SectionConfig{
@@ -52,6 +53,7 @@ func TestConfig_marshal(t *testing.T) {
   header_template = "header"
   hosting = "hosting"
   markup = "markup"
+  news_file = "news"
   repository = "repo"
   section_template = "section"
 
@@ -77,6 +79,7 @@ func Test_parseConfig(t *testing.T) {
 		FragmentDir: ".stentor.d",
 		Hosting:     "github",
 		Markup:      "markdown",
+		NewsFile:    "CHANGELOG.md",
 		Sections: []SectionConfig{
 			{
 				Name:      "Security",
