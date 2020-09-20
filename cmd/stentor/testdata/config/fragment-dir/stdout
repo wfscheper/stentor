@@ -1,0 +1,24 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+Changes for the next release can be found in the [".stentor.d" directory](./.stentor.d).
+
+<!-- stentor output starts -->
+
+## [v0.2.0] - 2006-01-02
+
+### Added
+
+- A fragment.
+  [#1](https://github.com/myname/myrepo/issues/1)
+
+
+[v0.2.0]: https://github.com/myname/myrepo/compare/v0.1.0...v0.2.0
+
+
+----
+

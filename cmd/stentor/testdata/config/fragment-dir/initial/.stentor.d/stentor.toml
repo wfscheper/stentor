@@ -1,0 +1,3 @@
+[stentor]
+repository = "myname/myrepo"
+fragment_dir = "fragments"

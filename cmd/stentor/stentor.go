@@ -26,6 +26,7 @@ import (
 	"strings"
 	"text/tabwriter"
 	"text/template"
+	"time"
 
 	"github.com/wfscheper/stentor/fragment"
 	"github.com/wfscheper/stentor/internal/templates"
@@ -57,6 +58,7 @@ type Exec struct {
 
 	// command-line options
 	configFile  *string
+	date        time.Time
 	release     *bool
 	showVersion *bool
 }
@@ -138,6 +140,10 @@ func (e Exec) Run() int {
 	}
 
 	r := release.New(cfg.Repository, cfg.Markup, version, previousVersion)
+
+	// override default date
+	r.Date = e.date
+
 	r, err = configureSections(r, cfg.Sections, fragmentFiles)
 	if err != nil {
 		e.err.Println(err)
@@ -184,6 +190,12 @@ func (e Exec) parseFlags() (Exec, *flag.FlagSet, error) {
 		"path to config file",
 	)
 
+	date := flags.String(
+		"date",
+		getEnvString(e.Env, "date", time.Now().Format("2006-01-02")),
+		"date of release",
+	)
+
 	e.release = flags.Bool(
 		"release",
 		getEnvBool(e.Env, "release", false),
@@ -196,11 +208,18 @@ func (e Exec) parseFlags() (Exec, *flag.FlagSet, error) {
 	e.setUsage(flags)
 
 	// parse command line arguments
-	if err := flags.Parse(e.Args[1:]); err != nil {
+	err := flags.Parse(e.Args[1:])
+	if err != nil {
 		return e, nil, err
 	}
 
-	return e, flags, nil
+	e.date, err = time.Parse("2006-01-02", *date)
+	if err != nil {
+		e.err.Println(err)
+		return e, nil, err
+	}
+
+	return e, flags, err
 }
 
 func (e Exec) displayVersion() {
