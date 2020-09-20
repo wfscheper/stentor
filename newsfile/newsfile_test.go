@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -41,15 +42,23 @@ func Test_copyIntoFile(t *testing.T) {
 	t.Parallel()
 
 	t.Run("comment exists", rapid.MakeCheck(func(t *rapid.T) {
-		startComment := rapid.SampledFrom([]string{stentor.CommentMD, stentor.CommentRST}).
-			Draw(t, "startComment").(string)
+		startComment := rapid.SampledFrom([]string{
+			stentor.CommentMD,
+			stentor.CommentRST,
+		}).Draw(t, "startComment").(string)
 		header := rapid.StringN(512, 1024, -1).Draw(t, "header").(string)
 		trailer := rapid.StringN(512, 1024, -1).Draw(t, "trailer").(string)
-		src := bytes.NewBufferString(header + startComment + trailer)
-		dst := &bytes.Buffer{}
+
+		srcString := header + startComment + trailer
 		data := rapid.String().Draw(t, "data").(string)
 
-		if err := copyIntoFile(dst, src, startComment, []byte(data)); assert.NoError(t, err) {
+		src := bytes.NewBufferString(srcString)
+		dst := &bytes.Buffer{}
+
+		err := copyIntoFile(dst, src, startComment, []byte(data))
+		if err != nil {
+			assert.True(t, !strings.Contains(srcString, "\n"+startComment+"\n"))
+		} else {
 			assert.Equal(t, header+startComment+data+trailer, dst.String())
 		}
 	}))
