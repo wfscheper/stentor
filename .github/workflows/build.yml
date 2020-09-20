@@ -57,13 +57,13 @@ jobs:
         uses: crazy-max/ghaction-mage@v1
         with:
           version: latest
-          args: -v build
+          args: -v go:build
 
       - name: Test
         uses: crazy-max/ghaction-mage@v1
         with:
           version: latest
-          args: -v coverage
+          args: -v go:coverage
 
       - name: Send coverage
         uses: shogo82148/actions-goveralls@v1
