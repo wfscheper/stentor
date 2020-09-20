@@ -2,6 +2,7 @@ package fragment
 
 import (
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -10,9 +11,14 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	tmpdir := t.TempDir()
+	tmpdir, err := ioutil.TempDir("", "stentor-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpdir)
+
 	fn := filepath.Join(tmpdir, "section.summary.ticket.md")
-	err := ioutil.WriteFile(fn, []byte(`contents`), 0600)
+	err = ioutil.WriteFile(fn, []byte(`contents`), 0600)
 	require.NoError(t, err)
 
 	f, s, err := New(fn)
@@ -36,9 +42,14 @@ func TestNew_error(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tmpdir := t.TempDir()
+			tmpdir, err := ioutil.TempDir("", "stentor-")
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer os.RemoveAll(tmpdir)
+
 			fn := filepath.Join(tmpdir, tt.name)
-			err := ioutil.WriteFile(fn, []byte(`contents`), 0600)
+			err = ioutil.WriteFile(fn, []byte(`contents`), 0600)
 			require.NoError(t, err)
 
 			_, _, err = New(fn)

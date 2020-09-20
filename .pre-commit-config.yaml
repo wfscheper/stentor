@@ -33,7 +33,7 @@ repos:
         additional_dependencies: ["@commitlint/config-conventional"]
 
   - repo: https://github.com/golangci/golangci-lint
-    rev: v1.29.0
+    rev: v1.31.0
     hooks:
       - id: golangci-lint
         args: [--allow-parallel-runners]

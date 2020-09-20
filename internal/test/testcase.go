@@ -171,6 +171,7 @@ func (te *Environment) AddEnv(e string) {
 
 func (te *Environment) Cleanup() {
 	_ = os.Chdir(te.wd)
+	_ = os.RemoveAll(te.tmpdir)
 }
 
 func (te *Environment) CopyTree(src string) {
@@ -244,7 +245,11 @@ func (te *Environment) Run(progName string, args []string) error {
 
 func (te *Environment) makeTempDir() {
 	if te.tmpdir == "" {
-		te.tmpdir = te.t.TempDir()
+		var err error
+		te.tmpdir, err = ioutil.TempDir("", "stentor-")
+		if err != nil {
+			te.t.Fatal(err)
+		}
 
 		// OSX uses a symlink, so resolve the link
 		if runtime.GOOS == "darwin" {
