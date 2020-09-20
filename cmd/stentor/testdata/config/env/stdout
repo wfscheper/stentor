@@ -1,0 +1,9 @@
+Usage: stentor [OPTIONS] NEW PREVIOUS
+
+Update a news file with the changes from version PREVIOUS to NEW.
+
+Flags:
+
+  -config   path to config file (default: other.toml)
+  -release  update newsfile with fragments (default: false)
+  -version  show version information (default: false)

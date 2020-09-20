@@ -1,0 +1,4 @@
+{
+  "commands": [["-help"]],
+  "environ": ["STENTOR_RELEASE=true"]
+}

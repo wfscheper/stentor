@@ -102,6 +102,11 @@ func runTest(name, relPath, wd string, run test.RunFunc) func(t *testing.T) {
 		testEnv := test.NewEnvironment(t, testCase.InitialPath(), wd, run)
 		defer testEnv.Cleanup()
 
+		for _, env := range testCase.Environ {
+			t.Logf("adding environment variable: %s", env)
+			testEnv.AddEnv(env)
+		}
+
 		var err error
 		for i, args := range testCase.Commands {
 			err = testEnv.Run(appName, args)

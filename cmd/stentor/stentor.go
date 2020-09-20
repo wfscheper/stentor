@@ -22,6 +22,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"text/tabwriter"
 	"text/template"
 
@@ -54,9 +56,9 @@ type Exec struct {
 	out *log.Logger
 
 	// command-line options
-	configFile  string
-	release     bool
-	showVersion bool
+	configFile  *string
+	release     *bool
+	showVersion *bool
 }
 
 func New(wd string, args, env []string, err, out io.Writer) Exec {
@@ -80,22 +82,9 @@ func (e Exec) Run() int {
 	}
 
 	// show version and exit
-	if e.showVersion {
+	if *e.showVersion {
 		e.displayVersion()
 		return succesfulExitCode
-	}
-
-	// determine path to config file
-	if !filepath.IsAbs(e.configFile) {
-		e.configFile = filepath.Join(e.WorkDir, e.configFile)
-		e.configFile = filepath.Clean(e.configFile)
-	}
-
-	// parse config file
-	cfg, err := e.readConfig(e.configFile)
-	if err != nil {
-		e.err.Println(err)
-		return genericExitCode
 	}
 
 	if len(fs.Args()) > 2 {
@@ -112,6 +101,19 @@ func (e Exec) Run() int {
 	previousVersion := fs.Arg(1)
 	if previousVersion == "" {
 		e.err.Println("missing PREVIOUS argument")
+		return genericExitCode
+	}
+
+	// determine path to config file
+	if !filepath.IsAbs(*e.configFile) {
+		*e.configFile = filepath.Join(e.WorkDir, *e.configFile)
+		*e.configFile = filepath.Clean(*e.configFile)
+	}
+
+	// parse config file
+	cfg, err := e.readConfig(*e.configFile)
+	if err != nil {
+		e.err.Println(err)
 		return genericExitCode
 	}
 
@@ -148,7 +150,7 @@ func (e Exec) Run() int {
 		return genericExitCode
 	}
 
-	if !e.release {
+	if !*e.release {
 		e.out.Print(buf.String())
 		return succesfulExitCode
 	}
@@ -176,9 +178,19 @@ func (e Exec) parseFlags() (Exec, *flag.FlagSet, error) {
 	flags := flag.NewFlagSet(appName, flag.ContinueOnError)
 	flags.SetOutput(e.err.Writer())
 
-	flags.StringVar(&e.configFile, "config", filepath.Join(".stentor.d", "stentor.toml"), "path to config file")
-	flags.BoolVar(&e.release, "release", false, "update newsfile with fragments")
-	flags.BoolVar(&e.showVersion, "version", false, "show version information")
+	e.configFile = flags.String(
+		"config",
+		getEnvString(e.Env, "config", filepath.Join(".stentor.d", "stentor.toml")),
+		"path to config file",
+	)
+
+	e.release = flags.Bool(
+		"release",
+		getEnvBool(e.Env, "release", false),
+		"update newsfile with fragments",
+	)
+
+	e.showVersion = flags.Bool("version", false, "show version information")
 
 	// setup usage information
 	e.setUsage(flags)
@@ -297,4 +309,36 @@ func generateRelease(w io.Writer, cfg Config, r release.Release) error {
 	}
 
 	return nil
+}
+
+func getEnvBool(env []string, key string, def bool) bool {
+	key = strings.ToUpper(appName) + "_" + strings.ToUpper(key)
+	if v, ok := lookupEnv(env, key); ok {
+		if b, err := strconv.ParseBool(v); err == nil {
+			return b
+		}
+	}
+
+	return def
+}
+
+func getEnvString(env []string, key, def string) string {
+	key = strings.ToUpper(appName) + "_" + strings.ToUpper(key)
+	if v, ok := lookupEnv(env, key); ok {
+		return v
+	}
+
+	return def
+}
+
+func lookupEnv(env []string, key string) (v string, ok bool) {
+	for _, e := range env {
+		if strings.HasPrefix(e, key+"=") {
+			v = strings.Split(e, "=")[1]
+			ok = true
+			break
+		}
+	}
+
+	return
 }
