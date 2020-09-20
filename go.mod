@@ -8,5 +8,6 @@ require (
 	github.com/magefile/mage v1.10.0
 	github.com/pelletier/go-toml v1.8.0
 	github.com/stretchr/testify v1.6.1
+	github.com/wfscheper/magelib v0.1.0
 	pgregory.net/rapid v0.4.0
 )
