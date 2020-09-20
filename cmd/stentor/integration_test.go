@@ -102,6 +102,8 @@ func runTest(name, relPath, wd string, run test.RunFunc) func(t *testing.T) {
 		testEnv := test.NewEnvironment(t, testCase.InitialPath(), wd, run)
 		defer testEnv.Cleanup()
 
+		// force default date
+		testEnv.AddEnv("STENTOR_DATE=2006-01-02")
 		for _, env := range testCase.Environ {
 			t.Logf("adding environment variable: %s", env)
 			testEnv.AddEnv(env)
