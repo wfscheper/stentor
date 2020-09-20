@@ -27,6 +27,7 @@ import (
 	"testing"
 
 	"github.com/ianbruene/go-difflib/difflib"
+	"github.com/stretchr/testify/assert"
 )
 
 // Case loads a testdata.json test configuration and executes that test.
@@ -37,6 +38,7 @@ type Case struct {
 	initialPath string
 	Commands    [][]string `json:"commands"`
 	Skip        bool       `json:"skip"`
+	Environ     []string   `json:"environ"`
 }
 
 // NewCase returns a Case.
@@ -62,7 +64,7 @@ func NewCase(t *testing.T, dir, name string) *Case {
 	return c
 }
 
-// CompareOutput compares stdout to the contents of a stdout.txt file in the test directory.
+// CompareOutput compares stdout to the contents of a stdout file in the test directory.
 func (c *Case) CompareOutput(stdout string) {
 	data, err := ioutil.ReadFile(filepath.Join(c.rootPath, "stdout"))
 	if err != nil {
@@ -72,12 +74,10 @@ func (c *Case) CompareOutput(stdout string) {
 		panic(err)
 	}
 
-	if got, want := stdout, string(data); got != want {
-		c.t.Errorf("stdout was not as expected\n%s", diffErr(c.t, got, want))
-	}
+	assert.Equal(c.t, string(data), stdout)
 }
 
-// CompareError compares stderr to the contents of a stderr.txt file in the test directory.
+// CompareError compares stderr to the contents of a stderr file in the test directory.
 func (c *Case) CompareError(errIn error, stderr string) {
 	data, err := ioutil.ReadFile(filepath.Join(c.rootPath, "stderr"))
 	if err != nil {
@@ -120,11 +120,11 @@ func (c *Case) InitialPath() string {
 
 // UpdateStdout updates the golden file for stdout with the working result.
 func (c *Case) UpdateStdout(stdout string) {
-	stdoutPath := filepath.Join(c.rootPath, "stdout.txt")
+	stdoutPath := filepath.Join(c.rootPath, "stdout")
 	_, err := os.Stat(stdoutPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			// Don't update the stdout.txt file if it doesn't exist.
+			// Don't update the stdout file if it doesn't exist.
 			return
 		}
 		panic(err)
@@ -163,6 +163,10 @@ func NewEnvironment(t *testing.T, rootPath, wd string, run RunFunc) *Environment
 	}
 
 	return e
+}
+
+func (te *Environment) AddEnv(e string) {
+	te.env = append(te.env, e)
 }
 
 func (te *Environment) Cleanup() {
