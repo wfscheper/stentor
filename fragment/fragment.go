@@ -1,7 +1,6 @@
 package fragment
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
@@ -15,40 +14,43 @@ import (
 // stentor, and is just present to describe the fragment for people browsing the
 // fragments.
 type Fragment struct {
-	// Text is the content of the change.
-	Text string
+	// Section is the short name of the section this fragment belongs to.
+	Section string
 	// Issue is the ID of any issues or pull requests to link to.
 	Issue string
+	// Text is the content of the change.
+	Text string
 }
 
 // New returns a Fragment and the short name of the section it goes into.
-func New(fn string) (Fragment, string, error) {
-	data, err := ioutil.ReadFile(fn)
-	if err != nil {
-		return Fragment{}, "", err
-	}
-
-	// strip whitespace
-	data = bytes.TrimSpace(data)
+func New(fn string) (Fragment, error) {
+	var f Fragment
 
 	parts := strings.Split(filepath.Base(fn), ".")
-
-	// error checking
 	var errMsg string
 	switch {
-	case len(parts) > 4:
-		errMsg = "too many parts"
-	case len(parts) < 4:
+	case len(parts) < 3:
 		errMsg = "not enough parts"
 	case parts[0] == "":
-		errMsg = "empty section"
-	case parts[2] == "":
 		errMsg = "empty issue"
+	case parts[1] == "":
+		errMsg = "empty section"
 	}
 
 	if errMsg != "" {
-		return Fragment{}, "", fmt.Errorf("'%s' is not a valid fragment file: %s", filepath.Base(fn), errMsg)
+		return f, fmt.Errorf("not a valid fragment file: %s", errMsg)
 	}
 
-	return Fragment{string(data), parts[2]}, parts[0], nil
+	data, err := ioutil.ReadFile(fn)
+	if err != nil {
+		return f, err
+	}
+
+	f = Fragment{
+		Issue:   parts[0],
+		Section: parts[1],
+		Text:    strings.TrimSpace(string(data)),
+	}
+
+	return f, err
 }
