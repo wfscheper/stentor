@@ -69,7 +69,7 @@ This example assumes that there is already a v0.1.0 tag.
 1. Run stentor to see the output it would add to CHANGELOG.md.
 
    ```bash
-   $ stentor
+   $ stentor v0.2.0 v0.1.0
    # Changelog
 
    All notable changes to this project will be documented in this file.
@@ -101,16 +101,11 @@ This example assumes that there is already a v0.1.0 tag.
 
 
    ---
+
+
    $ git add .stentory.d/
    $ git commit -m "Setup stentor to generate CHANGELOG.md"
    ```
-
-`stentor` will attempt to determine the next version from the types of fragements that it finds.
-You can override this by giving `stentor` an explicit version:
-
-```bash
-stentor -version v1.0.0
-```
 
 1. Use the `-release` flag to consume the news fragments.
 

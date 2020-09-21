@@ -38,6 +38,33 @@ var (
 	ErrBadRepository     = errors.New("repository must be in the format <user name>/<repository name>")
 	ErrBadSections       = errors.New("must define at least one section")
 	ErrMissingRepository = errors.New("repository is required")
+
+	defaultSectionConfig = []SectionConfig{
+		{
+			Name:      "Security",
+			ShortName: "security",
+		},
+		{
+			Name:      "Deprecated",
+			ShortName: "deprecate",
+		},
+		{
+			Name:      "Removed",
+			ShortName: "remove",
+		},
+		{
+			Name:      "Changed",
+			ShortName: "change",
+		},
+		{
+			Name:      "Added",
+			ShortName: "feature",
+		},
+		{
+			Name:      "Fixed",
+			ShortName: "fix",
+		},
+	}
 )
 
 type tomlConfig struct {
@@ -111,32 +138,7 @@ func parseConfig(data []byte) (Config, error) {
 	}
 
 	if len(c.Sections) == 0 {
-		c.Sections = []SectionConfig{
-			{
-				Name:      "Security",
-				ShortName: "security",
-			},
-			{
-				Name:      "Changed",
-				ShortName: "change",
-			},
-			{
-				Name:      "Deprecated",
-				ShortName: "deprecate",
-			},
-			{
-				Name:      "Removed",
-				ShortName: "remove",
-			},
-			{
-				Name:      "Added",
-				ShortName: "add",
-			},
-			{
-				Name:      "Fixed",
-				ShortName: "fix",
-			},
-		}
+		c.Sections = defaultSectionConfig
 	}
 
 	return c, nil

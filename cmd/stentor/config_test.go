@@ -86,10 +86,6 @@ func Test_parseConfig(t *testing.T) {
 				ShortName: "security",
 			},
 			{
-				Name:      "Changed",
-				ShortName: "change",
-			},
-			{
 				Name:      "Deprecated",
 				ShortName: "deprecate",
 			},
@@ -98,8 +94,12 @@ func Test_parseConfig(t *testing.T) {
 				ShortName: "remove",
 			},
 			{
+				Name:      "Changed",
+				ShortName: "change",
+			},
+			{
 				Name:      "Added",
-				ShortName: "add",
+				ShortName: "feature",
 			},
 			{
 				Name:      "Fixed",

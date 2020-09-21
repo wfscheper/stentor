@@ -144,11 +144,7 @@ func (e Exec) Run() int {
 	// override default date
 	r.Date = e.date
 
-	r, err = configureSections(r, cfg.Sections, fragmentFiles)
-	if err != nil {
-		e.err.Println(err)
-		return genericExitCode
-	}
+	r = e.configureSections(r, cfg.Sections, fragmentFiles)
 
 	buf := &bytes.Buffer{}
 	if err := generateRelease(buf, cfg, r); err != nil {
@@ -270,17 +266,18 @@ Flags:
 	}
 }
 
-func configureSections(r release.Release, sections []SectionConfig, fragmentFiles []string) (release.Release, error) {
+func (e Exec) configureSections(r release.Release, sections []SectionConfig, fragmentFiles []string) release.Release {
 	sectionMap := map[string]section.Section{}
 	for _, fragmentFile := range fragmentFiles {
-		f, section, err := fragment.New(fragmentFile)
+		f, err := fragment.New(fragmentFile)
 		if err != nil {
-			return r, err
+			e.err.Printf("ignoring %s: %v", fragmentFile, err)
+			continue
 		}
 
-		s := sectionMap[section]
+		s := sectionMap[f.Section]
 		s.Fragments = append(s.Fragments, f)
-		sectionMap[section] = s
+		sectionMap[f.Section] = s
 	}
 
 	for _, cfg := range sections {
@@ -298,7 +295,7 @@ func configureSections(r release.Release, sections []SectionConfig, fragmentFile
 		}
 	}
 
-	return r, nil
+	return r
 }
 
 func generateRelease(w io.Writer, cfg Config, r release.Release) error {
