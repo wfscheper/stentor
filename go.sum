@@ -26,6 +26,8 @@ github.com/valyala/bytebufferpool v1.0.0/go.mod h1:6bBcMArwyJ5K/AmCkWv1jt77kVWyC
 github.com/valyala/fasttemplate v1.0.1/go.mod h1:UQGH1tvbgY+Nz5t2n7tXsz52dQxojPUpymEIMZ47gx8=
 github.com/wfscheper/magelib v0.1.0 h1:HdQ5202PJveiLzaWFGQjV78KoqVvjw5Ar91ELCfYObY=
 github.com/wfscheper/magelib v0.1.0/go.mod h1:KiOpQJrrtXhO3hUmwcqqCZawIXceaSn93a4L4dxbGF0=
+github.com/wfscheper/magelib v0.2.0 h1:UeeM+Ooa5OPwq9TztJ8mF0rTPrfosMpgr6yyG9QH9Pw=
+github.com/wfscheper/magelib v0.2.0/go.mod h1:KiOpQJrrtXhO3hUmwcqqCZawIXceaSn93a4L4dxbGF0=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405 h1:yhCVgyC4o1eVCa2tZl7eS0r+SDo693bJlVdllGtEeKM=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/yaml.v2 v2.3.0 h1:clyUAQHOM3G0M3f5vQj7LuJrETvjVot3Z5el9nffUtU=
