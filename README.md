@@ -12,7 +12,7 @@ It was inspired by [towncrier](https://github.com/twisted/towncrier) and [git-ch
 ## Badges
 
 ![Build](https://github.com/wfscheper/stentor/workflows/Build/badge.svg)
-[![Coverage Status](https://coveralls.io/repos/github/wfscheper/stentor/badge.svg?branch=master)](https://coveralls.io/github/wfscheper/stentor?branch=master)
+[![codecov](https://codecov.io/gh/wfscheper/stentor/branch/master/graph/badge.svg)](https://codecov.io/gh/wfscheper/stentor)
 [![License](https://img.shields.io/github/license/wfscheper/stentor)](/LICENSE)
 
 ## Installation
