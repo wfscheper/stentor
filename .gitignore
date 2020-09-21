@@ -1,5 +1,6 @@
 # mage managed files
 /bin/
+/dist/
 /tests/
 /tools/bin/
 

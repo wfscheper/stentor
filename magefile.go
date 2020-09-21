@@ -39,6 +39,7 @@ var (
 
 	getGolangciLint = magelib.GetGolangciLint("v1.31.0")
 	getGotestsum    = magelib.GetGotestsum("v0.5.3")
+	getGoreleaser   = magelib.GetGoreleaser("v0.143.0")
 	getRice         = magelib.GetGoTool(moduleRice, "rice", "v1.0.0")
 )
 
@@ -52,6 +53,9 @@ func init() {
 	magelib.LintDeps = []interface{}{
 		func(ctx context.Context) error { return getGolangciLint(ctx) },
 	}
+	magelib.ReleaseDeps = []interface{}{
+		func(ctx context.Context) error { return getGoreleaser(ctx) },
+	}
 	magelib.TestDeps = []interface{}{
 		func(ctx context.Context) error { return getGotestsum(ctx) },
 	}
@@ -59,6 +63,7 @@ func init() {
 	magelib.ProjectTools = map[string]magelib.ToolFunc{
 		magelib.ModuleGolangciLint: getGolangciLint,
 		magelib.ModuleGotestsum:    getGotestsum,
+		magelib.ModuleGoreleaser:   getGoreleaser,
 		moduleRice:                 getRice,
 	}
 }
