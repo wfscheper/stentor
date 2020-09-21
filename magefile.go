@@ -70,5 +70,5 @@ func init() {
 
 // All runs format, lint, vet, build, and test targets
 func All(ctx context.Context) {
-	mg.SerialCtxDeps(ctx, magelib.Go.Lint, magelib.Go.Build, magelib.Go.Test)
+	mg.SerialCtxDeps(ctx, magelib.Go.Lint, magelib.Go.Exec, magelib.Go.Test)
 }
