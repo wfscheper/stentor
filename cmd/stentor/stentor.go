@@ -28,11 +28,11 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/wfscheper/stentor/config"
 	"github.com/wfscheper/stentor/fragment"
 	"github.com/wfscheper/stentor/internal/templates"
 	"github.com/wfscheper/stentor/newsfile"
 	"github.com/wfscheper/stentor/release"
-	"github.com/wfscheper/stentor/section"
 )
 
 const (
@@ -73,7 +73,7 @@ func New(wd string, args, env []string, err, out io.Writer) Exec {
 	}
 }
 
-func (e Exec) Run() int {
+func (e Exec) Run() int { // nolint:gocognit // 31 > 30, but hard to see how to simplify
 	// parse flags
 	e, fs, err := e.parseFlags()
 	if err != nil {
@@ -109,7 +109,6 @@ func (e Exec) Run() int {
 	// determine path to config file
 	if !filepath.IsAbs(*e.configFile) {
 		*e.configFile = filepath.Join(e.WorkDir, *e.configFile)
-		*e.configFile = filepath.Clean(*e.configFile)
 	}
 
 	// parse config file
@@ -125,7 +124,7 @@ func (e Exec) Run() int {
 		return genericExitCode
 	}
 
-	// if there are no fragments, and no show always sections then exit
+	// if there are no fragments and no sections with show always, then exit
 	if len(fragmentFiles) == 0 {
 		var exit bool = true
 		for _, s := range cfg.Sections {
@@ -139,12 +138,28 @@ func (e Exec) Run() int {
 		}
 	}
 
-	r := release.New(cfg.Repository, cfg.Markup, version, previousVersion)
+	// parse into fragments
+	var fragments []fragment.Fragment
+	for _, fn := range fragmentFiles {
+		f, err := fragment.New(fn)
+		if err != nil {
+			// log error and continue
+			e.err.Printf("ignoring invalid fragment file %s: %v", fn, err)
+			continue
+		}
+		fragments = append(fragments, f)
+	}
+
+	r, err := release.New(cfg.Repository, cfg.Markup, version, previousVersion)
+	if err != nil {
+		e.err.Println(err)
+		return genericExitCode
+	}
 
 	// override default date
 	r.Date = e.date
 
-	r = e.configureSections(r, cfg.Sections, fragmentFiles)
+	r.SetSections(cfg.Sections, fragments)
 
 	buf := &bytes.Buffer{}
 	if err := generateRelease(buf, cfg, r); err != nil {
@@ -222,18 +237,18 @@ func (e Exec) displayVersion() {
 	e.out.Printf("%s %s built from %s on %s\n", appName, version, commit, buildDate)
 }
 
-func (Exec) readConfig(fn string) (Config, error) {
+func (Exec) readConfig(fn string) (config.Config, error) {
 	data, err := ioutil.ReadFile(fn)
 	if err != nil {
-		return Config{}, fmt.Errorf("could not read config files: %w", err)
+		return config.Config{}, fmt.Errorf("could not read config files: %w", err)
 	}
 
-	cfg, err := ParseBytes(data)
+	cfg, err := config.ParseBytes(data)
 	if err != nil {
 		return cfg, fmt.Errorf("could not parse config file: %w", err)
 	}
 
-	if err := ValidateConfig(cfg); err != nil {
+	if err := config.ValidateConfig(cfg); err != nil {
 		return cfg, fmt.Errorf("invalid configuration: %w", err)
 	}
 
@@ -266,39 +281,7 @@ Flags:
 	}
 }
 
-func (e Exec) configureSections(r release.Release, sections []SectionConfig, fragmentFiles []string) release.Release {
-	sectionMap := map[string]section.Section{}
-	for _, fragmentFile := range fragmentFiles {
-		f, err := fragment.New(fragmentFile)
-		if err != nil {
-			e.err.Printf("ignoring %s: %v", fragmentFile, err)
-			continue
-		}
-
-		s := sectionMap[f.Section]
-		s.Fragments = append(s.Fragments, f)
-		sectionMap[f.Section] = s
-	}
-
-	for _, cfg := range sections {
-		if s, ok := sectionMap[cfg.ShortName]; ok {
-			if cfg.ShowAlways != nil {
-				s.ShowAlways = *cfg.ShowAlways
-			}
-			s.Title = cfg.Name
-			r.Sections = append(r.Sections, s)
-		} else if cfg.ShowAlways != nil && *cfg.ShowAlways {
-			r.Sections = append(r.Sections, section.Section{
-				ShowAlways: *cfg.ShowAlways,
-				Title:      cfg.Name,
-			})
-		}
-	}
-
-	return r
-}
-
-func generateRelease(w io.Writer, cfg Config, r release.Release) error {
+func generateRelease(w io.Writer, cfg config.Config, r *release.Release) error {
 	var loadTemplate = func(name, fallback string) (*template.Template, error) {
 		if name != "" {
 			return templates.Parse(name)

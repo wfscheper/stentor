@@ -1,2 +1,2 @@
 [stentor]
-repository = "myrepo/myname"
+repository = "https://myhost/myrepo/myname"

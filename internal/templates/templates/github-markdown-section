@@ -23,7 +23,7 @@
 
 {{ range .Fragments -}}
 - {{ .Text | indent 2 }}{{ if .Issue }}
-  [#{{ .Issue }}](https://github.com/{{ $repository }}/issues/{{ .Issue }}){{ end }}
+  [#{{ .Issue }}]({{ $repository }}/issues/{{ .Issue }}){{ end }}
 {{ else -}}
 {{ if .ShowAlways -}}
 No significant changes.
@@ -32,7 +32,7 @@ No significant changes.
 {{ end -}}
 {{- end }}
 
-[{{ .Version }}]: https://github.com/{{ .Repository }}/compare/{{ .PreviousVersion }}...{{ .Version }}
+[{{ .Version }}]: {{ .Repository }}/compare/{{ .PreviousVersion }}...{{ .Version }}
 
 
 ----
