@@ -26,6 +26,8 @@ func TestLoad(t *testing.T) {
 	}{
 		{"github-markdown-section"},
 		{"github-rst-section"},
+		{"gitlab-markdown-section"},
+		{"gitlab-rst-section"},
 		{"markdown-header"},
 		{"rst-header"},
 	}
