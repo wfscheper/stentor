@@ -289,7 +289,7 @@ func generateRelease(w io.Writer, cfg config.Config, r *release.Release) error {
 		return templates.New(fallback)
 	}
 
-	headerTemplate, err := loadTemplate(cfg.HeaderTemplate, cfg.Hosting+"-"+cfg.Markup+"-header")
+	headerTemplate, err := loadTemplate(cfg.HeaderTemplate, cfg.Markup+"-header")
 	if err != nil {
 		return fmt.Errorf("cannot parse header template: %w", err)
 	}
