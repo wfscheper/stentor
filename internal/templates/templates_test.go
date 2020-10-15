@@ -24,10 +24,10 @@ func TestLoad(t *testing.T) {
 	tests := []struct {
 		name string
 	}{
-		{"github-markdown-header"},
 		{"github-markdown-section"},
-		{"github-rst-header"},
 		{"github-rst-section"},
+		{"markdown-header"},
+		{"rst-header"},
 	}
 
 	t.Parallel()
