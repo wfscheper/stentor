@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package config
 
 import (
 	"strings"
@@ -38,7 +38,7 @@ func TestConfig_marshal(t *testing.T) {
 		NewsFile:        "news",
 		Repository:      "repo",
 		SectionTemplate: "section",
-		Sections: []SectionConfig{
+		Sections: []Section{
 			{
 				Name:       "Name",
 				ShortName:  "name",
@@ -81,7 +81,7 @@ func Test_parseConfig(t *testing.T) {
 		Hosting:     "github",
 		Markup:      "markdown",
 		NewsFile:    "CHANGELOG.md",
-		Sections: []SectionConfig{
+		Sections: []Section{
 			{
 				Name:      "Security",
 				ShortName: "security",
@@ -129,16 +129,15 @@ func Test_validateConfig(t *testing.T) {
 
 	genHosting := rapid.SampledFrom([]string{"github", "gitlab"})
 	genMarkup := rapid.SampledFrom([]string{"markdown", "rst"})
-	genRepository := rapid.Just("foo/bar")
-	is := assert.New(t)
+	genRepository := rapid.Just("https://host/name/repo")
 
 	t.Run("invalid hosting", rapid.MakeCheck(func(t *rapid.T) {
 		c := Config{
-			Repository: genRepository.Draw(t, "repository").(string),
 			Hosting:    rapid.String().Draw(t, "hosting").(string),
 			Markup:     genMarkup.Draw(t, "markup").(string),
+			Repository: genRepository.Draw(t, "repository").(string),
 		}
-		is.EqualError(ValidateConfig(c), ErrBadHosting.Error())
+		assert.EqualError(t, ValidateConfig(c), ErrBadHosting.Error())
 	}))
 
 	t.Run("invalid markup", rapid.MakeCheck(func(t *rapid.T) {
@@ -147,22 +146,26 @@ func Test_validateConfig(t *testing.T) {
 			Markup:     rapid.String().Draw(t, "markup").(string),
 			Repository: genRepository.Draw(t, "repository").(string),
 		}
-		is.EqualError(ValidateConfig(c), ErrBadMarkup.Error())
+		assert.EqualError(t, ValidateConfig(c), ErrBadMarkup.Error())
 	}))
 
 	t.Run("invalid repository", rapid.MakeCheck(func(t *rapid.T) {
 		c := Config{
-			Repository: rapid.String().Filter(func(s string) bool {
-				return strings.Count(s, "/") != 1
-			}).Draw(t, "repository").(string),
-			Hosting: genHosting.Draw(t, "hosting").(string),
-			Markup:  genMarkup.Draw(t, "markup").(string),
+			Hosting:    genHosting.Draw(t, "hosting").(string),
+			Markup:     genMarkup.Draw(t, "markup").(string),
+			Repository: rapid.SampledFrom([]string{"file", ""}).Draw(t, "repository").(string),
 		}
-		want := ErrBadRepository
-		if c.Repository == "" {
-			want = ErrMissingRepository
+		if err := ValidateConfig(c); err != nil {
+			if c.Repository == "" {
+				if err.Error() != ErrMissingRepository.Error() {
+					t.Errorf("expected error %v, got %v", ErrMissingRepository, err)
+				}
+			} else {
+				if !strings.HasPrefix(err.Error(), "invalid repository: ") {
+					t.Errorf("expected invalid repository error, got %v", err)
+				}
+			}
 		}
-		is.EqualError(ValidateConfig(c), want.Error())
 	}))
 
 	t.Run("no sections", rapid.MakeCheck(func(t *rapid.T) {
@@ -171,6 +174,6 @@ func Test_validateConfig(t *testing.T) {
 			Markup:     genMarkup.Draw(t, "markup").(string),
 			Repository: genRepository.Draw(t, "repository").(string),
 		}
-		is.EqualError(ValidateConfig(c), ErrBadSections.Error())
+		assert.EqualError(t, ValidateConfig(c), ErrBadSections.Error())
 	}))
 }

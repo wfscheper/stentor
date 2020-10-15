@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package config
 
 import (
 	"bytes"
 	"errors"
 	"fmt"
+	"net/url"
 	"path/filepath"
 	"strings"
 
@@ -36,11 +37,10 @@ const (
 var (
 	ErrBadHosting        = errors.New("hosting must be one of 'github' or 'gitlab'")
 	ErrBadMarkup         = errors.New("markup must be one of 'markdown' or 'rst'")
-	ErrBadRepository     = errors.New("repository must be in the format <user name>/<repository name>")
 	ErrBadSections       = errors.New("must define at least one section")
 	ErrMissingRepository = errors.New("repository is required")
 
-	defaultSectionConfig = []SectionConfig{
+	defaultSectionConfig = []Section{
 		{
 			Name:      "Security",
 			ShortName: "security",
@@ -90,7 +90,7 @@ type Config struct {
 	Markup string `toml:"markup,omitempty"`
 	// Sections define the different news sections.
 	// Sections will be listed in the order in which they are defined here.
-	Sections []SectionConfig `toml:"sections,omitempty"`
+	Sections []Section `toml:"sections,omitempty"`
 	// HeaderTemplate is the name of the template used to render the header of the news file.
 	HeaderTemplate string `toml:"header_template,omitempty"`
 	// SectionTemplate is the name of the template used to render the individual sections of the news file.
@@ -150,9 +150,12 @@ func ValidateConfig(c Config) error {
 	if c.Repository == "" {
 		return ErrMissingRepository
 	}
-	// and must contain a single / that isn't the first or last character
-	if strings.Count(c.Repository, "/") != 1 || c.Repository[0] == '/' || c.Repository[len(c.Repository)-1] == '/' {
-		return ErrBadRepository
+	// must be a parseable http(s) URL
+	switch u, err := url.Parse(c.Repository); {
+	case err != nil:
+		return fmt.Errorf("invalid repository: %w", err)
+	case !strings.HasPrefix(u.Scheme, "http"):
+		return fmt.Errorf("invalid repository: must be a http or https URL")
 	}
 	// hosting must be github or gitlab
 	if c.Hosting != HostingGithub && c.Hosting != HostingGitlab {
@@ -195,7 +198,7 @@ func (c Config) StartComment() string {
 }
 
 // Section represents a group of news items in a release.
-type SectionConfig struct {
+type Section struct {
 	// Name of the section.
 	Name string `toml:"name,omitempty"`
 	// ShorName is the string used in a fragment file to indicate what section the fragment is for.

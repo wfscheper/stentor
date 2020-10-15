@@ -32,7 +32,7 @@ func TestSectionTemplate(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		releaseFunc func(string, string, string) Release
+		releaseFunc func(string, string, string) (*Release, error)
 		want        string
 	}{
 		{
@@ -45,13 +45,13 @@ func TestSectionTemplate(t *testing.T) {
 				"- The foo feature.\n" +
 				"\n" +
 				"  This is an awesome feature.\n" +
-				"  [#1](https://github.com/myname/myrepo/issues/1)\n" +
+				"  [#1](https://host/myname/myrepo/issues/1)\n" +
 				"\n" +
 				"\n" +
 				"### Bug Fixes\n" +
 				"\n" +
 				"- Fix the bug in foo.\n" +
-				"  [#2](https://github.com/myname/myrepo/issues/2)\n" +
+				"  [#2](https://host/myname/myrepo/issues/2)\n" +
 				"- Multiple other things.\n" +
 				"\n" +
 				"\n" +
@@ -60,7 +60,7 @@ func TestSectionTemplate(t *testing.T) {
 				"No significant changes.\n" +
 				"\n" +
 				"\n" +
-				"[v0.2.0]: https://github.com/myname/myrepo/compare/v0.1.0...v0.2.0\n" +
+				"[v0.2.0]: https://host/myname/myrepo/compare/v0.1.0...v0.2.0\n" +
 				"\n" +
 				"\n" +
 				"----\n" +
@@ -78,14 +78,14 @@ func TestSectionTemplate(t *testing.T) {
 				"- The foo feature.\n" +
 				"\n" +
 				"  This is an awesome feature.\n" +
-				"  `#1 <https://github.com/myname/myrepo/issues/1>`_\n" +
+				"  `#1 <https://host/myname/myrepo/issues/1>`_\n" +
 				"\n" +
 				"\n" +
 				"Bug Fixes\n" +
 				"---------\n" +
 				"\n" +
 				"- Fix the bug in foo.\n" +
-				"  `#2 <https://github.com/myname/myrepo/issues/2>`_\n" +
+				"  `#2 <https://host/myname/myrepo/issues/2>`_\n" +
 				"- Multiple other things.\n" +
 				"\n" +
 				"\n" +
@@ -95,7 +95,7 @@ func TestSectionTemplate(t *testing.T) {
 				"No significant changes.\n" +
 				"\n" +
 				"\n" +
-				".. _v0.2.0: https://github.com/myname/myrepo/compare/v0.1.0...v0.2.0\n" +
+				".. _v0.2.0: https://host/myname/myrepo/compare/v0.1.0...v0.2.0\n" +
 				"\n" +
 				"\n" +
 				"----\n" +
@@ -106,7 +106,10 @@ func TestSectionTemplate(t *testing.T) {
 	t.Parallel()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := tt.releaseFunc("myname/myrepo", "v0.2.0", "v0.1.0")
+			r, err := tt.releaseFunc("https://host/myname/myrepo", "v0.2.0", "v0.1.0")
+			require.NoError(err)
+
+			// assing a fixed date
 			r.Date = time.Date(2020, 1, 2, 3, 4, 5, 6, time.UTC)
 			r.Sections = []section.Section{
 				{
@@ -147,19 +150,48 @@ func TestSectionTemplate(t *testing.T) {
 	}
 }
 
+func Test_newRelease_error(t *testing.T) {
+}
+
 func Test_newRelease(t *testing.T) {
-	r := newRelease("myname/myrepo", "v0.2.0", "v0.1.0")
-	assert.Equal(t, "myname/myrepo", r.Repository)
+	tests := []struct {
+		repo, want, wantError string
+	}{
+		{"http://myhost/myname/myrepo", "http://myhost/myname/myrepo", ""},
+		{"https://myhost/myname/myrepo", "https://myhost/myname/myrepo", ""},
+		{"https:///myname/myrepo", "https:///myname/myrepo", ""},
+		{"https://myhost/myrepo", "https://myhost/myrepo", ""},
+		{"https://myhost/myname/myrepo?branch=foo", "https://myhost/myname/myrepo", ""},
+		{"https://myhost/myname/myrepo#afragment", "https://myhost/myname/myrepo", ""},
+		{"https://myhost/myname/myrepo?branch=foo#afragment", "https://myhost/myname/myrepo", ""},
+		{"myhost/myname/myrepo", "", "invalid URL: no scheme"},
+		{"file://myhost/myname/myrepo", "", "invalid URL: only http or https schemes"},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.repo, func(t *testing.T) {
+			t.Parallel()
+
+			if r, err := newRelease(tt.repo, "v0.2.0", "v0.1.0"); err != nil {
+				assert.EqualError(t, err, tt.wantError)
+			} else {
+				assert.Equal(t, tt.want, r.Repository)
+			}
+		})
+	}
 }
 
 func Test_newMarkdown(t *testing.T) {
-	r := newMarkdown("myname/myrepo", "v0.2.0", "v0.1.0")
-	assert.Equal(t, "##", r.Header)
-	assert.Equal(t, "###", r.SectionHeader)
+	if r, err := newMarkdown("https://myhost/myname/myrepo", "v0.2.0", "v0.1.0"); assert.NoError(t, err) {
+		assert.Equal(t, "##", r.Header)
+		assert.Equal(t, "###", r.SectionHeader)
+	}
 }
 
 func Test_newRST(t *testing.T) {
-	r := newRST("myname/myrepo", "v0.2.0", "v0.1.0")
-	assert.Equal(t, "=", r.Header)
-	assert.Equal(t, "-", r.SectionHeader)
+	if r, err := newRST("https://myhost/myname/myrepo", "v0.2.0", "v0.1.0"); assert.NoError(t, err) {
+		assert.Equal(t, "=", r.Header)
+		assert.Equal(t, "-", r.SectionHeader)
+	}
 }

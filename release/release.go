@@ -15,9 +15,13 @@
 package release
 
 import (
+	"errors"
+	"net/url"
 	"time"
 
 	"github.com/wfscheper/stentor"
+	"github.com/wfscheper/stentor/config"
+	"github.com/wfscheper/stentor/fragment"
 	"github.com/wfscheper/stentor/section"
 )
 
@@ -29,7 +33,7 @@ type Release struct {
 	Header string
 	// PreviousVersion is the version before this release.
 	PreviousVersion string
-	// Repository is the user/repo portion of the git repository URL.
+	// Repository is the URL of the project repository.
 	Repository string
 	// SectionHeader is the markup character used when writing a section header.
 	SectionHeader string
@@ -39,10 +43,10 @@ type Release struct {
 	Version string
 }
 
-// NewRelease returns a simple Release.
+// New returns a Release.
 //
-// The caller is responsible for defining the Header and SectionHeader.
-func New(repo, markup, version, previousVersion string) Release {
+// The repo should be a parsable URL.
+func New(repo, markup, version, previousVersion string) (*Release, error) {
 	switch markup {
 	case stentor.MarkupMD:
 		return newMarkdown(repo, version, previousVersion)
@@ -53,27 +57,76 @@ func New(repo, markup, version, previousVersion string) Release {
 	}
 }
 
-func newRelease(repo, version, previousVersion string) Release {
-	return Release{
-		Date:            time.Now().UTC(),
-		Repository:      repo,
-		PreviousVersion: previousVersion,
-		Version:         version,
+// SetSections populates the release's sections.
+func (r *Release) SetSections(sections []config.Section, fragments []fragment.Fragment) {
+	sectionMap := map[string]section.Section{}
+	for _, fragment := range fragments {
+		s := sectionMap[fragment.Section]
+		s.Fragments = append(s.Fragments, fragment)
+		sectionMap[fragment.Section] = s
+	}
+
+	for _, cfg := range sections {
+		if s, ok := sectionMap[cfg.ShortName]; ok {
+			if cfg.ShowAlways != nil {
+				s.ShowAlways = *cfg.ShowAlways
+			}
+			s.Title = cfg.Name
+			r.Sections = append(r.Sections, s)
+		} else if cfg.ShowAlways != nil && *cfg.ShowAlways {
+			r.Sections = append(r.Sections, section.Section{
+				ShowAlways: *cfg.ShowAlways,
+				Title:      cfg.Name,
+			})
+		}
 	}
 }
 
+func newRelease(repo, version, previousVersion string) (*Release, error) {
+	u, err := url.Parse(repo)
+	if err != nil {
+		return nil, err
+	}
+
+	switch u.Scheme {
+	case "http", "https":
+	case "":
+		return nil, errors.New("invalid URL: no scheme")
+	default:
+		return nil, errors.New("invalid URL: only http or https schemes")
+	}
+
+	u.Fragment = ""
+	u.RawQuery = ""
+
+	return &Release{
+		Date:            time.Now().UTC(),
+		Repository:      u.String(),
+		PreviousVersion: previousVersion,
+		Version:         version,
+	}, nil
+}
+
 // NewMarkdownRelease returns a Release with markdown style Header and SectionHeader.
-func newMarkdown(repo, version, previousVersion string) Release {
-	r := newRelease(repo, version, previousVersion)
+func newMarkdown(repo, version, previousVersion string) (*Release, error) {
+	r, err := newRelease(repo, version, previousVersion)
+	if err != nil {
+		return nil, err
+	}
+
 	r.Header = "##"
 	r.SectionHeader = "###"
-	return r
+	return r, nil
 }
 
 // NewRSTRelease returns a Release with reStructuredText style Header and SectionHeader.
-func newRST(repo, version, previousVersion string) Release {
-	r := newRelease(repo, version, previousVersion)
+func newRST(repo, version, previousVersion string) (*Release, error) {
+	r, err := newRelease(repo, version, previousVersion)
+	if err != nil {
+		return nil, err
+	}
+
 	r.Header = "="
 	r.SectionHeader = "-"
-	return r
+	return r, nil
 }
