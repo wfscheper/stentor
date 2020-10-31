@@ -9,6 +9,64 @@ Changes for the next release can be found in the [".stentor.d" directory](./.ste
 
 <!-- stentor output starts -->
 
+## [v0.2.0] - 2020-10-30
+
+### Changed
+
+- The repository for a project must be a http or https URL.
+  This breaking change is required
+  to support privately hosted repositories
+  with the built-in templates.
+
+  API changes:
+  - `release.New` now returns a `*release.Release` and an `error`
+  - Config structs moved
+    from the `main` package in `cmd/stentor`
+    to a new `config` package,
+    so that they are importable.
+  - `SectionConfig` is now `config.Section` to comply with go naming rules.
+
+  Behavior changes:
+  - `config.ValidateConfig` returns an error
+    if `repository` is not parseable by `url.Parse`
+    or is not a http or https URL.
+  [#14](https://github.com/wfscheper/stentor/issues/14)
+- The call signature of `newsfile.WriteFragments`
+  was changed to take a bool `keepHeader`.
+  This breaking change is required
+  to fix the duplication of the newsfile header.
+
+  API Changes:
+  - `newsfile.WriteFragments` now takes a new boolean argument,
+    indicating whether to keep the existing newsfile header or not.
+
+  Behavior changes:
+  - `stentor` no longer provides a default header template.
+    Instead,
+    the existing newsfile header will be preserved,
+    unless configured with a `header_template`.
+  [#18](https://github.com/wfscheper/stentor/issues/18)
+
+
+### Added
+
+- Added a `SetSections` method to `release.Release`.
+
+  `SetSectiosn` takes a `[]config.Section` and `[]fragment.Fragment`,
+  and populates the `Release`'s `Section` member
+  and their `Fragments`.
+  [#14](https://github.com/wfscheper/stentor/issues/14)
+- Added built-in markdown and rst templates
+  for gitlab repositories.
+  [#15](https://github.com/wfscheper/stentor/issues/15)
+
+
+[v0.2.0]: https://github.com/wfscheper/stentor/compare/v0.1.0...v0.2.0
+
+
+----
+
+
 ## [v0.1.0] - 2020-09-20
 
 Initial release
