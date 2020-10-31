@@ -26,8 +26,8 @@ const (
 	readLength = 1024
 )
 
-func WriteFragments(fn, startComment string, data []byte) error {
-	tf, err := writeFragments(fn, startComment, data)
+func WriteFragments(fn, startComment string, data []byte, keepHeader bool) error {
+	tf, err := writeFragments(fn, startComment, data, keepHeader)
 	if err != nil {
 		return err
 	}
@@ -41,7 +41,7 @@ func WriteFragments(fn, startComment string, data []byte) error {
 	return nil
 }
 
-func writeFragments(fn, startComment string, data []byte) (string, error) {
+func writeFragments(fn, startComment string, data []byte, keepHeader bool) (string, error) {
 	dst, err := ioutil.TempFile("", "")
 	if err != nil {
 		return "", err
@@ -63,7 +63,7 @@ func writeFragments(fn, startComment string, data []byte) (string, error) {
 	}
 	defer src.Close()
 
-	if err := copyIntoFile(dst, src, startComment, data); err != nil {
+	if err := copyIntoFile(dst, src, startComment, data, keepHeader); err != nil {
 		return "", err
 	}
 
@@ -71,9 +71,9 @@ func writeFragments(fn, startComment string, data []byte) (string, error) {
 }
 
 // nolint:gocognit // try to simplify this at some point
-func copyIntoFile(dst io.Writer, src io.Reader, startComment string, data []byte) error {
+func copyIntoFile(dst io.Writer, src io.Reader, startComment string, data []byte, keepHeader bool) error {
 	var partialBuf []byte = make([]byte, 0)
-	var dataWritten bool
+	var startFound bool
 	for {
 		// read from source
 		readBuf := make([]byte, readLength)
@@ -91,14 +91,19 @@ func copyIntoFile(dst io.Writer, src io.Reader, startComment string, data []byte
 			partialBuf = make([]byte, 0)
 		}
 
-		if !dataWritten {
+		if !startFound {
 			// find index of startComment
 			idx := bytes.Index(readBuf, []byte(startComment))
 			if idx >= 0 {
-				// splice in data
 				idx += len(startComment)
-				readBuf = append(readBuf[:idx], append(data, readBuf[idx:]...)...)
-				dataWritten = true
+				if keepHeader {
+					// need to keep the existing header,
+					// so splice data into readBuf
+					readBuf = append(readBuf[:idx], append(data, readBuf[idx:]...)...)
+				} else {
+					readBuf = append(data, readBuf[idx:]...)
+				}
+				startFound = true
 			} else {
 				// trim off everything after the last full line
 				lastIdx := bytes.LastIndex(readBuf, []byte("\n"))
@@ -108,13 +113,17 @@ func copyIntoFile(dst io.Writer, src io.Reader, startComment string, data []byte
 			}
 		}
 
-		// write to dst
-		if _, err := dst.Write(readBuf); err != nil {
-			return err
+		// write readBuf to dst
+		// if we already found the start comment
+		// or we're keeping the header
+		if startFound || keepHeader {
+			if _, err := dst.Write(readBuf); err != nil {
+				return err
+			}
 		}
 
 		if rerr == io.EOF {
-			// we're done
+			// we're done so flush anything left in partialBuf to dst
 			if len(partialBuf) > 0 {
 				if _, err := dst.Write(partialBuf); err != nil {
 					return err
@@ -124,7 +133,7 @@ func copyIntoFile(dst io.Writer, src io.Reader, startComment string, data []byte
 		}
 	}
 
-	if !dataWritten {
+	if !startFound {
 		return errors.New("no start comment found")
 	}
 

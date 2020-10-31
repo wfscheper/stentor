@@ -1,0 +1,3 @@
+[stentor]
+repository = "https://myhost/myname/myrepo"
+section_template = "section.tmpl"

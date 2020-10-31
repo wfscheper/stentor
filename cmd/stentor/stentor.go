@@ -172,7 +172,12 @@ func (e Exec) Run() int { // nolint:gocognit // 31 > 30, but hard to see how to 
 		return succesfulExitCode
 	}
 
-	if err := newsfile.WriteFragments(cfg.NewsFile, cfg.StartComment(), buf.Bytes()); err != nil {
+	if err := newsfile.WriteFragments(
+		cfg.NewsFile,
+		cfg.StartComment(),
+		append([]byte("\n"), buf.Bytes()...),
+		cfg.HeaderTemplate == "",
+	); err != nil {
 		e.err.Printf("cannot update %s: %v", cfg.NewsFile, err)
 		return genericExitCode
 	}
@@ -284,23 +289,25 @@ Flags:
 func generateRelease(w io.Writer, cfg config.Config, r *release.Release) error {
 	var loadTemplate = func(name, fallback string) (*template.Template, error) {
 		if name != "" {
-			return templates.Parse(name)
+			return templates.Parse(filepath.Join(cfg.FragmentDir, name))
 		}
 		return templates.New(fallback)
 	}
 
-	headerTemplate, err := loadTemplate(cfg.HeaderTemplate, cfg.Markup+"-header")
-	if err != nil {
-		return fmt.Errorf("cannot parse header template: %w", err)
+	if cfg.HeaderTemplate != "" {
+		headerTemplate, err := loadTemplate(cfg.HeaderTemplate, cfg.Markup+"-header")
+		if err != nil {
+			return fmt.Errorf("cannot parse header template: %w", err)
+		}
+
+		if err := headerTemplate.Execute(w, r); err != nil {
+			return fmt.Errorf("cannot render header template: %w", err)
+		}
 	}
 
 	sectionTemplate, err := loadTemplate(cfg.SectionTemplate, cfg.Hosting+"-"+cfg.Markup+"-section")
 	if err != nil {
 		return fmt.Errorf("cannot parse section template: %w", err)
-	}
-
-	if err := headerTemplate.Execute(w, r); err != nil {
-		return fmt.Errorf("cannot render header template: %w", err)
 	}
 
 	if err := sectionTemplate.Execute(w, r); err != nil {

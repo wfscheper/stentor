@@ -28,8 +28,6 @@ func TestLoad(t *testing.T) {
 		{"github-rst-section"},
 		{"gitlab-markdown-section"},
 		{"gitlab-rst-section"},
-		{"markdown-header"},
-		{"rst-header"},
 	}
 
 	t.Parallel()

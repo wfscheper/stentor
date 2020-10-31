@@ -19,7 +19,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -45,7 +44,7 @@ func TestWriteFragments(t *testing.T) {
 	err = ioutil.WriteFile(fn, []byte("some text\n\n.. stentor output starts\n\nsome more text\n"), 0600)
 	must.NoError(err)
 
-	if err := WriteFragments(fn, stentor.CommentRST, []byte("\nadded data")); is.NoError(err) {
+	if err := WriteFragments(fn, stentor.CommentRST, []byte("\nadded data"), true); is.NoError(err) {
 		data, err := ioutil.ReadFile(fn)
 		must.NoError(err)
 		is.Equal("some text\n\n.. stentor output starts\n\nadded data\nsome more text\n", string(data))
@@ -60,8 +59,11 @@ func Test_copyIntoFile(t *testing.T) {
 			stentor.CommentMD,
 			stentor.CommentRST,
 		}).Draw(t, "startComment").(string)
+
+		// we pick these sizes to force the start comment out past a single read
 		header := rapid.StringN(512, 1024, -1).Draw(t, "header").(string)
 		trailer := rapid.StringN(512, 1024, -1).Draw(t, "trailer").(string)
+		keepHeader := rapid.Bool().Draw(t, "keepHeader").(bool)
 
 		srcString := header + startComment + trailer
 		data := rapid.String().Draw(t, "data").(string)
@@ -69,11 +71,17 @@ func Test_copyIntoFile(t *testing.T) {
 		src := bytes.NewBufferString(srcString)
 		dst := &bytes.Buffer{}
 
-		err := copyIntoFile(dst, src, startComment, []byte(data))
+		err := copyIntoFile(dst, src, startComment, []byte(data), keepHeader)
 		if err != nil {
-			assert.True(t, !strings.Contains(srcString, "\n"+startComment+"\n"))
-		} else {
-			assert.Equal(t, header+startComment+data+trailer, dst.String())
+			t.Fatalf("copyIntoFile() returned an error: %v", err)
+		}
+
+		want := data + trailer
+		if keepHeader {
+			want = header + startComment + want
+		}
+		if got := dst.String(); got != want {
+			t.Errorf("copyIntoFile() wrote\n%s\n\nwant\n%s", got, want)
 		}
 	}))
 
@@ -86,7 +94,7 @@ func Test_copyIntoFile(t *testing.T) {
 		dst := &bytes.Buffer{}
 		data := rapid.String().Draw(t, "data").(string)
 
-		err := copyIntoFile(dst, src, startComment, []byte(data))
+		err := copyIntoFile(dst, src, startComment, []byte(data), true)
 		assert.EqualError(t, err, "no start comment found")
 	}))
 }

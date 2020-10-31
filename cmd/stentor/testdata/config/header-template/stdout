@@ -1,0 +1,19 @@
+# My Header
+
+This is my header.
+
+<!-- stentor output starts -->
+
+## [v0.2.0] - 2006-01-02
+
+### Added
+
+- A fragment.
+  [#1](https://myhost/myname/myrepo/issues/1)
+
+
+[v0.2.0]: https://myhost/myname/myrepo/compare/v0.1.0...v0.2.0
+
+
+----
+
