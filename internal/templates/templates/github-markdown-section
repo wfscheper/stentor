@@ -30,6 +30,9 @@ No significant changes.
 {{ end -}}
 {{ end -}}
 {{ end -}}
+{{ else }}
+
+No significant changes.
 {{- end }}
 
 [{{ .Version }}]: {{ .Repository }}/compare/{{ .PreviousVersion }}...{{ .Version }}

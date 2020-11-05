@@ -124,20 +124,6 @@ func (e Exec) Run() int { // nolint:gocognit // 31 > 30, but hard to see how to 
 		return genericExitCode
 	}
 
-	// if there are no fragments and no sections with show always, then exit
-	if len(fragmentFiles) == 0 {
-		var exit bool = true
-		for _, s := range cfg.Sections {
-			if s.ShowAlways != nil && *s.ShowAlways {
-				exit = false
-				break
-			}
-		}
-		if exit {
-			return succesfulExitCode
-		}
-	}
-
 	// parse into fragments
 	var fragments []fragment.Fragment
 	for _, fn := range fragmentFiles {
