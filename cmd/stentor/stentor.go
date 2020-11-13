@@ -127,13 +127,13 @@ func (e Exec) Run() int { // nolint:gocognit // 31 > 30, but hard to see how to 
 	// parse into fragments
 	var fragments []fragment.Fragment
 	for _, fn := range fragmentFiles {
-		f, err := fragment.New(fn)
+		f, err := fragment.Parse(fn)
 		if err != nil {
 			// log error and continue
 			e.err.Printf("ignoring invalid fragment file %s: %v", fn, err)
 			continue
 		}
-		fragments = append(fragments, f)
+		fragments = append(fragments, *f)
 	}
 
 	r, err := release.New(cfg.Repository, cfg.Markup, version, previousVersion)

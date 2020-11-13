@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package fragment parses fragment files.
 package fragment
 
 import (
@@ -22,11 +23,6 @@ import (
 )
 
 // Fragment represents a single change or other news entry.
-//
-// A fragment file follows the following naming convention:
-// <section>.<summary>.<issue>.(md|rst). Note that the summary is ignored by
-// stentor, and is just present to describe the fragment for people browsing the
-// fragments.
 type Fragment struct {
 	// Section is the short name of the section this fragment belongs to.
 	Section string
@@ -36,10 +32,23 @@ type Fragment struct {
 	Text string
 }
 
-// New returns a Fragment and the short name of the section it goes into.
+// Deprecated: New returns a Fragment and the short name of the section it goes into.
 func New(fn string) (Fragment, error) {
-	var f Fragment
+	f, err := Parse(fn)
+	if err != nil {
+		return Fragment{}, err
+	}
 
+	return *f, nil
+}
+
+// Parse parses the file fn into a Fragment structure.
+//
+// A fragment file follows the following naming convention:
+// <issues>.<section>[.<summary>].(md|rst).
+//
+// The summary is optional and is ignored by Parse.
+func Parse(fn string) (*Fragment, error) {
 	parts := strings.Split(filepath.Base(fn), ".")
 	var errMsg string
 	switch {
@@ -52,19 +61,19 @@ func New(fn string) (Fragment, error) {
 	}
 
 	if errMsg != "" {
-		return f, fmt.Errorf("not a valid fragment file: %s", errMsg)
+		return nil, fmt.Errorf("not a valid fragment file: %s", errMsg)
 	}
 
 	data, err := ioutil.ReadFile(fn)
 	if err != nil {
-		return f, err
+		return nil, err
 	}
 
-	f = Fragment{
+	f := &Fragment{
 		Issue:   parts[0],
 		Section: parts[1],
 		Text:    strings.TrimSpace(string(data)),
 	}
 
-	return f, err
+	return f, nil
 }

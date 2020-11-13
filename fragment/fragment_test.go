@@ -24,7 +24,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNew(t *testing.T) {
+func TestParse(t *testing.T) {
 	tests := []struct {
 		name string
 		want Fragment
@@ -48,8 +48,8 @@ func TestNew(t *testing.T) {
 			err = ioutil.WriteFile(fn, []byte(`contents`), 0600)
 			require.NoError(t, err)
 
-			if got, err := New(fn); assert.NoError(t, err) {
-				assert.Equal(t, tt.want, got)
+			if got, err := Parse(fn); assert.NoError(t, err) {
+				assert.Equal(t, tt.want, *got)
 			}
 		})
 	}
@@ -78,7 +78,7 @@ func TestNew_error(t *testing.T) {
 			err = ioutil.WriteFile(fn, []byte(`contents`), 0600)
 			require.NoError(t, err)
 
-			_, err = New(fn)
+			_, err = Parse(fn)
 			assert.EqualError(t, err, tt.want)
 		})
 	}
