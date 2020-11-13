@@ -44,7 +44,7 @@ func TestWriteFragments(t *testing.T) {
 	err = ioutil.WriteFile(fn, []byte("some text\n\n.. stentor output starts\n\nsome more text\n"), 0600)
 	must.NoError(err)
 
-	if err := WriteFragments(fn, stentor.CommentRST, []byte("\nadded data"), true); is.NoError(err) {
+	if err := WriteRelease(fn, stentor.CommentRST, []byte("\nadded data"), true); is.NoError(err) {
 		data, err := ioutil.ReadFile(fn)
 		must.NoError(err)
 		is.Equal("some text\n\n.. stentor output starts\n\nadded data\nsome more text\n", string(data))

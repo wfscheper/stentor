@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package newsfile provides utilities for editing stentor newsfiles.
 package newsfile
 
 import (
@@ -26,8 +27,18 @@ const (
 	readLength = 1024
 )
 
+// Deprecated: WriteFragments writes the release data into the file fn.
 func WriteFragments(fn, startComment string, data []byte, keepHeader bool) error {
-	tf, err := writeFragments(fn, startComment, data, keepHeader)
+	return WriteRelease(fn, startComment, data, keepHeader)
+}
+
+// WriteRelease writes the release data into the file fn.
+//
+// Release data is added to the file after the startComment.
+// If keepHeader is true, then the everything up to and including the
+// startComment is preserved.
+func WriteRelease(fn, startComment string, data []byte, keepHeader bool) error {
+	tf, err := writeRelease(fn, startComment, data, keepHeader)
 	if err != nil {
 		return err
 	}
@@ -41,7 +52,7 @@ func WriteFragments(fn, startComment string, data []byte, keepHeader bool) error
 	return nil
 }
 
-func writeFragments(fn, startComment string, data []byte, keepHeader bool) (string, error) {
+func writeRelease(fn, startComment string, data []byte, keepHeader bool) (string, error) {
 	dst, err := ioutil.TempFile("", "")
 	if err != nil {
 		return "", err

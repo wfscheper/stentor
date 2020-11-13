@@ -158,7 +158,7 @@ func (e Exec) Run() int { // nolint:gocognit // 31 > 30, but hard to see how to 
 		return succesfulExitCode
 	}
 
-	if err := newsfile.WriteFragments(
+	if err := newsfile.WriteRelease(
 		cfg.NewsFile,
 		cfg.StartComment(),
 		append([]byte("\n"), buf.Bytes()...),
