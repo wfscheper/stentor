@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package config provides a toml-based config file parser and validation.
 package config
 
 import (
@@ -28,16 +29,16 @@ import (
 
 const (
 	DefaultConfigDir = ".stentor.d"
-	HostingGithub    = "github"
-	HostingGitlab    = "gitlab"
-	MarkupMarkdown   = "markdown"
-	MarkupRST        = "rst"
 )
 
 var (
-	ErrBadHosting        = errors.New("hosting must be one of 'github' or 'gitlab'")
-	ErrBadMarkup         = errors.New("markup must be one of 'markdown' or 'rst'")
-	ErrBadSections       = errors.New("must define at least one section")
+	// ErrBadHosting is the error returned if a config file references an unsupported hosting provider.
+	ErrBadHosting = errors.New("hosting must be one of 'github' or 'gitlab'")
+	// ErrBadMarkup is the error returned if a config file references an unsupported style of markup.
+	ErrBadMarkup = errors.New("markup must be one of 'markdown' or 'rst'")
+	// ErrBadSections is the error returned if a config file contains an empty sections list.
+	ErrBadSections = errors.New("must define at least one section")
+	// ErrMissingRepository is the error returned if a config file does not declare a repository.
 	ErrMissingRepository = errors.New("repository is required")
 
 	defaultSectionConfig = []Section{
@@ -145,6 +146,7 @@ func parseConfig(data []byte) (Config, error) {
 	return c, nil
 }
 
+// ValidateConfig returns an error if c is not a valid config file.
 func ValidateConfig(c Config) error {
 	// repository must be non-empty
 	if c.Repository == "" {
@@ -158,11 +160,11 @@ func ValidateConfig(c Config) error {
 		return fmt.Errorf("invalid repository: must be a http or https URL")
 	}
 	// hosting must be github or gitlab
-	if c.Hosting != HostingGithub && c.Hosting != HostingGitlab {
+	if c.Hosting != stentor.HostingGithub && c.Hosting != stentor.HostingGitlab {
 		return ErrBadHosting
 	}
 	// markup must be markdown or rst
-	if c.Markup != MarkupMarkdown && c.Markup != MarkupRST {
+	if c.Markup != stentor.MarkupMD && c.Markup != stentor.MarkupRST {
 		return ErrBadMarkup
 	}
 	// must have at least one section
@@ -172,6 +174,7 @@ func ValidateConfig(c Config) error {
 	return nil
 }
 
+// FragmentFiles returns the names of all the fragment files.
 func (c Config) FragmentFiles() ([]string, error) {
 	var glob string
 	switch c.Markup {
@@ -186,6 +189,8 @@ func (c Config) FragmentFiles() ([]string, error) {
 	return filepath.Glob(filepath.Join(c.FragmentDir, glob))
 }
 
+// StartComment returns the markup-specific comment string stentor uses to
+// separate the news file header from the releases.
 func (c Config) StartComment() string {
 	switch c.Markup {
 	case stentor.MarkupMD:
