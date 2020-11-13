@@ -6,8 +6,11 @@ noun
 1. (lowercase) a person having a very loud or powerful voice.
 1. (lowercase) a trumpet-shaped, ciliate protozoan of the genus Stentor.
 
-Stentor is a CLI for generating a change log or release notes from a set of fragment files and templates.
-It was inspired by [towncrier](https://github.com/twisted/towncrier) and [git-chlog](https://github.com/git-chglog/git-chglog).
+`stentor` is a CLI
+for generating a change log or release notes
+from a set of fragment files and templates.
+It was inspired by [towncrier](https://github.com/twisted/towncrier)
+and [git-chlog](https://github.com/git-chglog/git-chglog).
 
 ## Badges
 
@@ -23,10 +26,12 @@ Download a pre-built binary for your OS and Architecture from the [releases](./r
 
 ### Go
 
-Run
+You can also build `stentor` directly using `go get`:
 
-```golang
-GO111MODULES=on go get github.com/wfscheper/stentor@v1.0.0
+```bash
+cd "$(mktmp -d)"
+go mod init fake
+go get github.com/wfscheper/stentor/cmd/stentor@v0.2.1
 ```
 
 ## Usage
@@ -35,7 +40,7 @@ GO111MODULES=on go get github.com/wfscheper/stentor@v1.0.0
 
 This example assumes that there is already a v0.1.0 tag.
 
-1. Create a `.stentor.d` directory in your git repositry.
+1. Create a `.stentor.d` directory in your git repository.
 
    ```bash
    mkdir .stentor.d
@@ -46,8 +51,9 @@ This example assumes that there is already a v0.1.0 tag.
 1. Create a minimal stentor config file.
 
    ```bash
-   $ cat >.stentor.d/stentor.yaml << EOF
-   repository: myname/myrepo
+   $ cat >.stentor.d/stentor.toml << EOF
+   [stentor]
+   repository = "https://giithub.com/myname/myrepo"
    EOF
    ```
 
@@ -70,16 +76,6 @@ This example assumes that there is already a v0.1.0 tag.
 
    ```bash
    $ stentor v0.2.0 v0.1.0
-   # Changelog
-
-   All notable changes to this project will be documented in this file.
-
-   The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-   and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-   <!-- stentor output starts -->
-
-
    ## [v0.2.0] - 2006-01-02
 
    ### Features
@@ -102,7 +98,6 @@ This example assumes that there is already a v0.1.0 tag.
 
    ---
 
-
    $ git add .stentory.d/
    $ git commit -m "Setup stentor to generate CHANGELOG.md"
    ```
@@ -110,7 +105,7 @@ This example assumes that there is already a v0.1.0 tag.
 1. Use the `-release` flag to consume the news fragments.
 
    ```bash
-   $ stentor -release
+   $ stentor -release v0.2.0 v0.1.0
    $ git status
    On branch master
    Changes not staged for commit:
