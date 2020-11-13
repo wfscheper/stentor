@@ -9,6 +9,23 @@ Changes for the next release can be found in the [".stentor.d" directory](./.ste
 
 <!-- stentor output starts -->
 
+## [v0.2.1] - 2020-11-12
+
+### Fixed
+
+- `stentor` now produces a release,
+  even if there are no fragment files.
+  The built-in templates
+  will produce a release that says "No significant changes."
+  [#21](https://github.com/wfscheper/stentor/issues/21)
+
+
+[v0.2.1]: https://github.com/wfscheper/stentor/compare/v0.2.0...v0.2.1
+
+
+----
+
+
 ## [v0.2.0] - 2020-10-30
 
 ### Changed
