@@ -12,10 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package stentor provides some shared constants.
 package stentor
 
 // Supported hosting platforms.
 const (
+	//
 	HostingGithub = "github"
 	HostingGitlab = "gitlab"
 )
@@ -26,6 +28,7 @@ const (
 	MarkupRST = "rst"
 )
 
+// Comment styles that separate the news file's header from the releases.
 const (
 	CommentMD  = "<!-- stentor output starts -->\n"
 	CommentRST = ".. stentor output starts\n"

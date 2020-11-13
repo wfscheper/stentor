@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package section provides the Section structure.
 package section
 
 import "github.com/wfscheper/stentor/fragment"
