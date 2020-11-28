@@ -28,6 +28,8 @@ github.com/wfscheper/magelib v0.1.0 h1:HdQ5202PJveiLzaWFGQjV78KoqVvjw5Ar91ELCfYO
 github.com/wfscheper/magelib v0.1.0/go.mod h1:KiOpQJrrtXhO3hUmwcqqCZawIXceaSn93a4L4dxbGF0=
 github.com/wfscheper/magelib v0.2.0 h1:UeeM+Ooa5OPwq9TztJ8mF0rTPrfosMpgr6yyG9QH9Pw=
 github.com/wfscheper/magelib v0.2.0/go.mod h1:KiOpQJrrtXhO3hUmwcqqCZawIXceaSn93a4L4dxbGF0=
+github.com/wfscheper/magelib v0.3.0 h1:G9m8ecoxe8QrlGgp/AmOTegGbZwDDVfJVfbNflCBBZ8=
+github.com/wfscheper/magelib v0.3.0/go.mod h1:KiOpQJrrtXhO3hUmwcqqCZawIXceaSn93a4L4dxbGF0=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405 h1:yhCVgyC4o1eVCa2tZl7eS0r+SDo693bJlVdllGtEeKM=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/yaml.v2 v2.3.0 h1:clyUAQHOM3G0M3f5vQj7LuJrETvjVot3Z5el9nffUtU=
