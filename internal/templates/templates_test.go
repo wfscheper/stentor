@@ -15,9 +15,14 @@
 package templates
 
 import (
+	"bytes"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestLoad(t *testing.T) {
@@ -37,4 +42,50 @@ func TestLoad(t *testing.T) {
 			assert.NoError(t, err)
 		})
 	}
+}
+
+func TestNew_error(t *testing.T) {
+	_, err := New("notexist")
+	require.Error(t, err)
+}
+
+const customTemplate = `Custom template.
+
+{{ "repeat" | repeat 2 }}
+
+{{ "The next two lines\nshould be indented\ntwo spaces." | indent 2 }}
+
+{{ sum 2 3 }}
+`
+
+func TestParse(t *testing.T) {
+	tmp, err := ioutil.TempDir("", "stentor-")
+	require.NoError(t, err)
+	defer os.RemoveAll(tmp)
+
+	fn := filepath.Join(tmp, "test.template")
+	require.NoError(t, ioutil.WriteFile(fn, []byte(customTemplate), 0600))
+
+	tmpl, err := Parse(fn)
+	require.NoError(t, err)
+
+	buf := &bytes.Buffer{}
+	require.NoError(t, tmpl.Execute(buf, "ignore me"))
+
+	want := `Custom template.
+
+repeatrepeat
+
+The next two lines
+  should be indented
+  two spaces.
+
+5
+`
+	require.Equal(t, want, buf.String())
+}
+
+func TestParse_error(t *testing.T) {
+	_, err := Parse("notexist")
+	require.Error(t, err)
 }
