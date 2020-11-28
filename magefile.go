@@ -18,6 +18,7 @@ package main
 
 import (
 	"context"
+	"time"
 
 	"github.com/magefile/mage/mg"
 
@@ -45,8 +46,12 @@ var (
 )
 
 func init() {
+	// Set executable name
 	magelib.ExeName = "stentor"
+	// Set main package
 	magelib.MainPackage = "./cmd/stentor"
+	// Set test timeout
+	magelib.TestTimeout = 60 * time.Second
 
 	magelib.GenerateDeps = []interface{}{
 		func(ctx context.Context) error { return getRice(ctx) },
