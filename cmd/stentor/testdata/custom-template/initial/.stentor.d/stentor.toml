@@ -1,0 +1,3 @@
+[stentor]
+repository = "https://myhost/myrepo/myname"
+section_template = "section.template"

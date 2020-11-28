@@ -15,6 +15,8 @@
 package templates
 
 import (
+	"io/ioutil"
+	"path/filepath"
 	"strings"
 	"text/template"
 
@@ -48,7 +50,12 @@ func New(name string) (*template.Template, error) {
 
 // Parse returns the template parsed from file fn
 func Parse(fn string) (*template.Template, error) {
-	return template.ParseFiles(fn)
+	data, err := ioutil.ReadFile(fn)
+	if err != nil {
+		return nil, err
+	}
+
+	return template.New(filepath.Base(fn)).Funcs(funcMap).Parse(string(data))
 }
 
 // template functions
