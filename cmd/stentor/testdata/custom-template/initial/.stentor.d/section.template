@@ -1,0 +1,7 @@
+Custom template.
+
+{{ "repeat" | repeat 3 }}
+
+{{ "The next\ntwo lines should be\nindented two spaces." | indent 2 }}
+
+2 + 3 = {{ sum 2 3 }}
