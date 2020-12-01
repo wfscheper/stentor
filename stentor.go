@@ -30,6 +30,6 @@ const (
 
 // Comment styles that separate the news file's header from the releases.
 const (
-	CommentMD  = "<!-- stentor output starts -->\n"
+	CommentMD  = "<!-- stentor output starts -->"
 	CommentRST = ".. stentor output starts\n"
 )

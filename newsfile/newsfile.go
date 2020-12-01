@@ -38,7 +38,7 @@ func WriteFragments(fn, startComment string, data []byte, keepHeader bool) error
 // If keepHeader is true, then the everything up to and including the
 // startComment is preserved.
 func WriteRelease(fn, startComment string, data []byte, keepHeader bool) error {
-	tf, err := writeRelease(fn, startComment, data, keepHeader)
+	tf, err := writeRelease(fn, []byte(startComment), data, keepHeader)
 	if err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ func WriteRelease(fn, startComment string, data []byte, keepHeader bool) error {
 	return nil
 }
 
-func writeRelease(fn, startComment string, data []byte, keepHeader bool) (string, error) {
+func writeRelease(fn string, startComment, data []byte, keepHeader bool) (string, error) {
 	dst, err := ioutil.TempFile("", "")
 	if err != nil {
 		return "", err
@@ -82,7 +82,7 @@ func writeRelease(fn, startComment string, data []byte, keepHeader bool) (string
 }
 
 // nolint:gocognit // try to simplify this at some point
-func copyIntoFile(dst io.Writer, src io.Reader, startComment string, data []byte, keepHeader bool) error {
+func copyIntoFile(dst io.Writer, src io.Reader, startComment, data []byte, keepHeader bool) error {
 	var partialBuf []byte = make([]byte, 0)
 	var startFound bool
 	for {
@@ -94,7 +94,9 @@ func copyIntoFile(dst io.Writer, src io.Reader, startComment string, data []byte
 		}
 
 		// trim off zero bytes if we under read
-		readBuf = readBuf[:n]
+		if n < readLength {
+			readBuf = readBuf[:n]
+		}
 
 		if len(partialBuf) > 0 {
 			// we had a partial read so prepend it to readBuf
@@ -104,7 +106,7 @@ func copyIntoFile(dst io.Writer, src io.Reader, startComment string, data []byte
 
 		if !startFound {
 			// find index of startComment
-			idx := bytes.Index(readBuf, []byte(startComment))
+			idx := bytes.Index(readBuf, startComment)
 			if idx >= 0 {
 				idx += len(startComment)
 				if keepHeader {
@@ -116,10 +118,12 @@ func copyIntoFile(dst io.Writer, src io.Reader, startComment string, data []byte
 				}
 				startFound = true
 			} else {
-				// trim off everything after the last full line
-				lastIdx := bytes.LastIndex(readBuf, []byte("\n"))
-				if lastIdx >= 0 && lastIdx < len(readBuf)-1 {
-					readBuf, partialBuf = readBuf[:idx+1], readBuf[idx+1:]
+				// check for sub-strings of the start comment at the end of the read
+				for i := len(startComment) - 1; i >= 0 && len(readBuf)-i > 0; i-- {
+					if bytes.Equal(startComment[:i], readBuf[len(readBuf)-i:]) {
+						readBuf, partialBuf = readBuf[:len(readBuf)-i], readBuf[len(readBuf)-i:]
+						break
+					}
 				}
 			}
 		}
