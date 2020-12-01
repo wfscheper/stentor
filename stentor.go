@@ -27,6 +27,6 @@ const (
 )
 
 const (
-	CommentMD  = "<!-- stentor output starts -->\n"
+	CommentMD  = "<!-- stentor output starts -->"
 	CommentRST = ".. stentor output starts\n"
 )
