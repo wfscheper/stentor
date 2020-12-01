@@ -16,6 +16,7 @@ package newsfile
 
 import (
 	"bytes"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -41,60 +42,79 @@ func TestWriteFragments(t *testing.T) {
 	defer os.Chdir(wd) // nolint:errcheck // defer func
 
 	fn := filepath.Join(tmpdir, "file")
-	err = ioutil.WriteFile(fn, []byte("some text\n\n.. stentor output starts\n\nsome more text\n"), 0600)
-	must.NoError(err)
+	must.NoError(ioutil.WriteFile(fn, []byte("some text\n\n.. stentor output starts\n\nsome more text\n"), 0600))
 
-	if err := WriteRelease(fn, stentor.CommentRST, []byte("\nadded data"), true); is.NoError(err) {
+	if err := WriteRelease(fn, stentor.CommentRST, []byte("added data\n"), true); is.NoError(err) {
 		data, err := ioutil.ReadFile(fn)
 		must.NoError(err)
-		is.Equal("some text\n\n.. stentor output starts\n\nadded data\nsome more text\n", string(data))
+		is.Equal("some text\n\n.. stentor output starts\nadded data\n\nsome more text\n", string(data))
 	}
 }
 
+func TestWriteFragments_no_comment(t *testing.T) {
+	tmpdir, err := ioutil.TempDir("", "stentor-")
+	require.NoError(t, err)
+
+	wd, err := os.Getwd()
+	require.NoError(t, err)
+
+	require.NoError(t, os.Chdir(tmpdir))
+	defer os.Chdir(wd) // nolint:errcheck // defer func
+
+	fn := filepath.Join(tmpdir, "file")
+	require.NoError(t, ioutil.WriteFile(fn, []byte("some text\nsome more text\n"), 0600))
+	require.EqualError(t, WriteRelease(fn, stentor.CommentMD, []byte("added data\n"), true), "no start comment found")
+}
+
 func Test_copyIntoFile(t *testing.T) {
-	t.Parallel()
+	rapid.Check(t, func(t *rapid.T) {
+		nt := newsfileGen().Draw(t, "newsfile").(newsfileTest)
 
-	t.Run("comment exists", rapid.MakeCheck(func(t *rapid.T) {
-		startComment := rapid.SampledFrom([]string{
-			stentor.CommentMD,
-			stentor.CommentRST,
-		}).Draw(t, "startComment").(string)
+		var src io.Reader
+		if nt.includeComment {
+			src = bytes.NewBufferString(nt.header + nt.startComment + nt.trailer)
+		} else {
+			src = bytes.NewBufferString(nt.header + nt.trailer)
+		}
 
-		// we pick these sizes to force the start comment out past a single read
-		header := rapid.StringN(512, 1024, -1).Draw(t, "header").(string)
-		trailer := rapid.StringN(512, 1024, -1).Draw(t, "trailer").(string)
-		keepHeader := rapid.Bool().Draw(t, "keepHeader").(bool)
-
-		srcString := header + startComment + trailer
-		data := rapid.String().Draw(t, "data").(string)
-
-		src := bytes.NewBufferString(srcString)
 		dst := &bytes.Buffer{}
+		err := copyIntoFile(dst, src, []byte(nt.startComment), []byte(nt.data), nt.keepHeader)
+		if nt.includeComment {
+			if err != nil {
+				t.Fatalf("copyIntoFile() returned an error: %v", err)
+			}
 
-		err := copyIntoFile(dst, src, startComment, []byte(data), keepHeader)
-		if err != nil {
-			t.Fatalf("copyIntoFile() returned an error: %v", err)
+			want := nt.data + nt.trailer
+			if nt.keepHeader {
+				want = nt.header + nt.startComment + want
+			}
+			if got := dst.String(); got != want {
+				t.Errorf("copyIntoFile() wrote\n%s\n\nwant\n%s", got, want)
+			}
+		} else if err == nil || err.Error() != "no start comment found" {
+			t.Fatalf("copyIntoFile() returned an error, %v, wanted, %q", err, "no start comment found")
 		}
+	})
+}
 
-		want := data + trailer
-		if keepHeader {
-			want = header + startComment + want
+type newsfileTest struct {
+	startComment, header, trailer, data string
+	keepHeader, includeComment          bool
+}
+
+func newsfileGen() *rapid.Generator {
+	return rapid.Custom(func(t *rapid.T) newsfileTest {
+		return newsfileTest{
+			startComment: rapid.SampledFrom([]string{
+				stentor.CommentMD,
+				stentor.CommentRST,
+			}).Draw(t, "startComment").(string),
+			// we pick these sizes to force the start comment out past a single read
+			header:         rapid.StringN(512, 1024, -1).Draw(t, "header").(string),
+			trailer:        rapid.StringN(512, 1024, -1).Draw(t, "trailer").(string),
+			data:           rapid.String().Draw(t, "data").(string),
+			keepHeader:     rapid.Bool().Draw(t, "keepHeader").(bool),
+			includeComment: rapid.Bool().Draw(t, "includeComment").(bool),
 		}
-		if got := dst.String(); got != want {
-			t.Errorf("copyIntoFile() wrote\n%s\n\nwant\n%s", got, want)
-		}
-	}))
-
-	t.Run("no comment exists", rapid.MakeCheck(func(t *rapid.T) {
-		startComment := rapid.SampledFrom([]string{stentor.CommentMD, stentor.CommentRST}).
-			Draw(t, "startComment").(string)
-		header := rapid.StringN(512, 1024, -1).Draw(t, "header").(string)
-		trailer := rapid.StringN(512, 1024, -1).Draw(t, "trailer").(string)
-		src := bytes.NewBufferString(header + trailer)
-		dst := &bytes.Buffer{}
-		data := rapid.String().Draw(t, "data").(string)
-
-		err := copyIntoFile(dst, src, startComment, []byte(data), true)
-		assert.EqualError(t, err, "no start comment found")
-	}))
+	})
 }
