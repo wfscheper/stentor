@@ -39,9 +39,9 @@ var (
 	// Default mage target
 	Default = All
 
-	getGolangciLint = magelib.GetGolangciLint("v1.31.0")
-	getGotestsum    = magelib.GetGotestsum("v0.5.3")
-	getGoreleaser   = magelib.GetGoreleaser("v0.143.0")
+	getGolangciLint = magelib.GetGolangciLint("v1.33.0")
+	getGotestsum    = magelib.GetGotestsum("v0.6.0")
+	getGoreleaser   = magelib.GetGoreleaser("v0.149.0")
 	getRice         = magelib.GetGoTool(moduleRice, "rice", "v1.0.0")
 )
 
