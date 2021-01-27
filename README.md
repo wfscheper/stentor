@@ -98,7 +98,7 @@ This example assumes that there is already a v0.1.0 tag.
 
    ---
 
-   $ git add .stentory.d/
+   $ git add .stentor.d/
    $ git commit -m "Setup stentor to generate CHANGELOG.md"
    ```
 

@@ -21,13 +21,14 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 )
 
 const (
 	readLength = 1024
 )
 
-// Deprecated: WriteFragments writes the release data into the file fn.
+// WriteFragments Deprecated: writes the release data into the file fn.
 func WriteFragments(fn, startComment string, data []byte, keepHeader bool) error {
 	return WriteRelease(fn, startComment, data, keepHeader)
 }
@@ -53,7 +54,7 @@ func WriteRelease(fn, startComment string, data []byte, keepHeader bool) error {
 }
 
 func writeRelease(fn string, startComment, data []byte, keepHeader bool) (string, error) {
-	dst, err := ioutil.TempFile("", "")
+	dst, err := ioutil.TempFile(filepath.Dir(fn), "")
 	if err != nil {
 		return "", err
 	}
