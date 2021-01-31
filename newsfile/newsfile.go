@@ -20,6 +20,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 )
 
 const (
@@ -42,7 +43,7 @@ func WriteFragments(fn, startComment string, data []byte, keepHeader bool) error
 }
 
 func writeFragments(fn string, startComment, data []byte, keepHeader bool) (string, error) {
-	dst, err := ioutil.TempFile("", "")
+	dst, err := ioutil.TempFile(filepath.Dir(fn), "")
 	if err != nil {
 		return "", err
 	}
