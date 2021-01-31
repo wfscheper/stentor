@@ -9,6 +9,29 @@ Changes for the next release can be found in the [".stentor.d" directory](./.ste
 
 <!-- stentor output starts -->
 
+## [v0.2.2] - 2020-11-30
+
+### Fixed
+
+- Pass `indent` and `repeat` template functions to custom templates.
+  [#26](https://github.com/wfscheper/stentor/issues/26)
+- Fixed an issue where `stentor` could fail to find the start comment.
+
+  The original way `stentor` scanned for the start comment
+  worked so long as the newline after the comment
+  didn't align just after the end of the internal read buffer.
+  To fix that,
+  stentor now scans the end of the read buffer
+  looking for partial matches with the start comment.
+  [#28](https://github.com/wfscheper/stentor/issues/28)
+
+
+[v0.2.2]: https://github.com/wfscheper/stentor/compare/v0.2.1...v0.2.2
+
+
+----
+
+
 ## [v0.2.1] - 2020-11-12
 
 ### Fixed
