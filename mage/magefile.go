@@ -43,6 +43,7 @@ var (
 	getGotestsum    = magelib.GetGotestsum("v0.6.0")
 	getGoreleaser   = magelib.GetGoreleaser("v0.149.0")
 	getRice         = magelib.GetGoTool(moduleRice, "rice", "v1.0.0")
+	getStentor      = magelib.GetStentor("v0.2.2")
 )
 
 func init() {
@@ -53,6 +54,9 @@ func init() {
 	// Set test timeout
 	magelib.TestTimeout = 60 * time.Second
 
+	magelib.ChangelogDeps = []interface{}{
+		func(ctx context.Context) error { return getStentor(ctx) },
+	}
 	magelib.GenerateDeps = []interface{}{
 		func(ctx context.Context) error { return getRice(ctx) },
 	}
@@ -71,6 +75,7 @@ func init() {
 		magelib.ModuleGotestsum:    getGotestsum,
 		magelib.ModuleGoreleaser:   getGoreleaser,
 		moduleRice:                 getRice,
+		magelib.ModuleStentor:      getStentor,
 	}
 }
 

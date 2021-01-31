@@ -1,0 +1,5 @@
+github.com/magefile/mage v1.10.0/go.mod h1:z5UZb/iS3GoOSn0JgWuiw7dxlurVYTu+/jHXqQg881A=
+github.com/magefile/mage v1.11.0 h1:C/55Ywp9BpgVVclD3lRnSYCwXTYxmSppIgLeDYlNuls=
+github.com/magefile/mage v1.11.0/go.mod h1:z5UZb/iS3GoOSn0JgWuiw7dxlurVYTu+/jHXqQg881A=
+github.com/wfscheper/magelib v0.4.0 h1:QMiZGaZCV7QnyeN4sWI9UE9mKBqbUJNXpHn23IFLDac=
+github.com/wfscheper/magelib v0.4.0/go.mod h1:KiOpQJrrtXhO3hUmwcqqCZawIXceaSn93a4L4dxbGF0=
