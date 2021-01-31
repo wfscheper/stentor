@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Changes for the next release can be found in the [".stentor.d" directory](./.stentor.d).
 
 <!-- stentor output starts -->
+## [v0.2.3] - 2021-01-30
+
+### Fixed
+
+- Fixed how `stentor` atomically updates the newsfile
+  to avoid "cross-device link" errors.
+  [#32](https://github.com/wfscheper/stentor/issues/32)
+
+
+[v0.2.3]: https://github.com/wfscheper/stentor/compare/v0.2.2...v0.2.3
+
+
+----
+
 
 ## [v0.2.2] - 2020-11-30
 
