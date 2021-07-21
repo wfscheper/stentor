@@ -84,8 +84,8 @@ func writeRelease(fn string, startComment, data []byte, keepHeader bool) (string
 
 // nolint:gocognit // try to simplify this at some point
 func copyIntoFile(dst io.Writer, src io.Reader, startComment, data []byte, keepHeader bool) error {
-	var partialBuf []byte = make([]byte, 0)
 	var startFound bool
+	partialBuf := make([]byte, 0)
 	for {
 		// read from source
 		readBuf := make([]byte, readLength)
