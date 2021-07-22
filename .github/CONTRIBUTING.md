@@ -21,7 +21,8 @@ Some things we would like you to know:
 - `stentor` adheres to the [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/>)
   standard for commit messages.
   You also may want to read [How to Write a Git Commit Message](https://chris.beams.io/posts/git-commit/).
-  Conventional commits takes precendence when it *How to Write a Git Commit Message* disagree.
+  The conventional commits standard
+  takes precendence when *How to Write a Git Commit Message* disagrees.
 
 
 ## Tools
@@ -29,29 +30,51 @@ Some things we would like you to know:
 `stentor` uses [mage](https://github.com/magefile/mage)
 to manage local build tasks.
 
-The `mage lint` command will run our [pre-commit] hooks.
-Please run these before creating your pull request to save yourself wasted time.
+In order to isolate build dependnecies like `mage`
+from `stentor`'s runtime dependnecies,
+the `magefile.go` is kept in a separate module.
+A shell script is provided to make running mage correctly easier.
+Run `./magew -l` to see a basic list of mage targets,
+and what they do.
+
 
 ## Tests
 
-`stentor` uses the standard `testing` package plus the [rapid] property testing framework.
+Use the `./mage go:test` command to run the test suite locally.
+This ensures that your tests are run in the same way as our CI.
 
+`stentor` uses the [testify] package for most tests,
+but some tests are written using the [rapid] property testing framework.
 When writing tests, some guidelines that we suggest you follow are:
 
+- `rapid` and `testify` do not play well with each other,
+  so tests written using [rapid] should use the standard library `testing`
+  package directly.
 - Use the variables `want` and `got` to hold data for assertions:
 
   ```golang
-  x := f()
-  if got, want := x, 42; got != want {
-      t.Errorf("f() returned %v, want %v", got, want)
+  got := meaningofLife()
+  want := 42
+  assert.Equal(t, want, got)
+  ```
+
+- If the function under test returns an error,
+  use an inline style to handle checking the error
+  before doing any other assertions:
+
+  ```golang
+  if got, err := meaningOfLife(); assert.NoError(t, err) {
+      want := 42
+      assert.Equal(t, want, got)
   }
   ```
 
-- `stentor` relies on the [rapid] proprety testing framework for most tests.
-  These style of tests are generally preferred to [table-driven tests],
-  though the latter have their place.
-- Use the `mage test` command to run the test suite locally.
-  This ensures that your tests are run in the same way as our CI.
+- Use the `require` package to handle test setup errors:
+
+  ```golang
+  require.NoError(t, ioutil.WriteFile("some_file.txt", ...))
+  ```
+
 
 ## Documentation
 
@@ -60,14 +83,15 @@ When writing tests, some guidelines that we suggest you follow are:
   ```text
   This is a sentence.
   This is another sentance,
-  with a clause.
+  and it has a clause.
   ```
+
 
 ### Changelog
 
 All changes should include a changelog entry.
 Add a single file to the `.stentor.d` directory as part of your pull request
-named `<pull request #>.(breaking|build|chore|deprecation|feature|fix|test).md`.
+named `<issue #>.(breaking|build|chore|deprecation|feature|fix|test).md`.
 
 Changelog entries should follow these rules:
 
@@ -81,16 +105,36 @@ Changelog entries should follow these rules:
   - Added `my_cool_function()` to do cool things.
   - Creating `Foo` objects with the _many_ argument no longer raises a `RuntimeError`.
 
-- For changes that address multiple pull requests,
+- For the rare change that addresses multiple pull requests,
   create multiple fragments with the same contents.
 
-To see what `stentor` will add to the `CHANGELOG.md`, run `mage changelog`.
+To see what `stentor` will add to the `CHANGELOG.md`, run `./magew changelog`.
+
 
 ## Development
 
-First, make sure you have the latest version of [go] installed.
-While `stentor` supports the two most recent releases,
-development should be done with the most recent version.
+### VS Code Dev Container
+
+The `stentor` project provides a devcontainer setup for VS Code,
+and a set of recommended extensions.
+
+To use the devcontainer with VS Code,
+first install the [Remote - Container] extension.
+
+You can either follow the [Local Development](#local-development) instructions
+and mount your local clone into the devcontainer,
+or clone the repository into a docker volume.
+
+Read the official [documentation](https://code.visualstudio.com/docs/remote/containers)
+for details.
+
+
+### Local Development
+
+First,
+make sure you have the latest version of [go 1.15](https://golang.org/dl/) installed.
+`stentor` supports the two most recent releases,
+so development should be done with older stable release.
 
 Next, make a fork of the `stentor` repository by going to <https://github.com/wfscheper/stentor>
 and clicking on the **Fork** button near the top of the page.
@@ -98,20 +142,20 @@ and clicking on the **Fork** button near the top of the page.
 Then clone your fork of the `stentor` repository:
 
 ```bash
-git clone git@github.com:<username>/pymaven.git
+git clone git@github.com:<username>/stentor.git
 ```
 
 Installing the [pre-commit] hooks is recommend to ensure your commit will pass our CI checks:
 
 ```bash
-pre-commit install
-pre-commit install -t commit-msg
+pre-commit install -t pre-commit -t commit-msg
 pre-commit run --all-files
 ```
 
+[Remote - Container]: https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers
 [ci]: https://github.com/wfscheper/stentor/actions?query=workflow%3ACI
 [pre-commit]: https://pre-commit.com/
 [semantic newlines]: https://rhodesmill.org/brandon/2012/one-sentence-per-line/
 [rapid]: https://github.com/flyingmutant/rapid
 [table-driven tests]: https://github.com/golang/go/wiki/TableDrivenTests
-[go]: https://golang.org/dl/
+[testify]: https://github.com/stretchr/testify
