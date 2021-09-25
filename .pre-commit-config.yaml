@@ -16,15 +16,16 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.27.1
+    rev: v0.28.1
     hooks:
       - id: markdownlint
         exclude: ^(\.stentor\.d/|.*/testdata/)
 
   - repo: https://github.com/adrienverge/yamllint
-    rev: v1.26.1
+    rev: v1.26.3
     hooks:
       - id: yamllint
+        exclude: ^(.github/workflows/)
 
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
     rev: v5.0.0
@@ -34,7 +35,7 @@ repos:
         additional_dependencies: ["@commitlint/config-conventional"]
 
   - repo: https://github.com/golangci/golangci-lint
-    rev: v1.41.1
+    rev: v1.42.1
     hooks:
       - id: golangci-lint
         args: [--allow-parallel-runners]

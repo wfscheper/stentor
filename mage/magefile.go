@@ -26,10 +26,6 @@ import (
 	"github.com/wfscheper/magelib"
 )
 
-const (
-	moduleRice = "github.com/GeertJohan/go.rice/rice"
-)
-
 var (
 	// map go:clean to clean
 	Aliases = map[string]interface{}{
@@ -40,10 +36,9 @@ var (
 	Default = All
 
 	getGolangciLint = magelib.GetGolangciLint("v1.41.1")
-	getGotagger     = magelib.GetGotagger("v0.6.2")
+	getGotagger     = magelib.GetGotagger("v0.6.3")
 	getGotestsum    = magelib.GetGotestsum("v1.6.4")
 	getGoreleaser   = magelib.GetGoreleaser("v0.173.2")
-	getRice         = magelib.GetGoTool(moduleRice, "rice", "v1.0.2")
 	getStentor      = magelib.GetStentor("v0.2.3")
 )
 
@@ -57,9 +52,6 @@ func init() {
 
 	magelib.ChangelogDeps = []interface{}{
 		func(ctx context.Context) error { return getStentor(ctx) },
-	}
-	magelib.GenerateDeps = []interface{}{
-		func(ctx context.Context) error { return getRice(ctx) },
 	}
 	magelib.LintDeps = []interface{}{
 		func(ctx context.Context) error { return getGolangciLint(ctx) },
@@ -79,7 +71,6 @@ func init() {
 		magelib.ModuleGotagger:     getGotagger,
 		magelib.ModuleGotestsum:    getGotestsum,
 		magelib.ModuleGoreleaser:   getGoreleaser,
-		moduleRice:                 getRice,
 		magelib.ModuleStentor:      getStentor,
 	}
 }
