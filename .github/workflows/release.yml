@@ -10,19 +10,19 @@ jobs:
   goreleaser:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@331ce1d993939866bb63c32c6cbbfd48fa76fc57 # v2.1.4
         with:
           go-version: 1.15
-      - name: Run release
-        uses: crazy-max/ghaction-mage@v1
+
+      - name: Checkout
+        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
         with:
-          version: latest
-          args: -v go:release
+          fetch-depth: 0
+
+      - name: Run release
+        run: |
+          make V=1 go:release
         env:
           MAGELIB_DRY_RUN: "false"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

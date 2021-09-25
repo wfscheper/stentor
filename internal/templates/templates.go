@@ -15,15 +15,15 @@
 package templates
 
 import (
+	"embed"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
 	"text/template"
-
-	rice "github.com/GeertJohan/go.rice"
 )
 
-//go:generate ../../tools/bin/rice embed-go
+//go:embed templates
+var fs embed.FS
 
 var (
 	funcMap = template.FuncMap{
@@ -35,17 +35,12 @@ var (
 
 // New returns the named template
 func New(name string) (*template.Template, error) {
-	box, err := rice.FindBox("templates")
+	data, err := fs.ReadFile("templates/" + name)
 	if err != nil {
 		return nil, err
 	}
 
-	templateStr, err := box.String(name)
-	if err != nil {
-		return nil, err
-	}
-
-	return template.New(name).Funcs(funcMap).Parse(templateStr)
+	return template.New(name).Funcs(funcMap).Parse(string(data))
 }
 
 // Parse returns the template parsed from file fn

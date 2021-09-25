@@ -7,47 +7,36 @@ on:
   pull_request:
 
 jobs:
-  lint:
-    name: Run linters
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-      - uses: pre-commit/action@v2.0.0
-
   build:
     name: Build and test on go ${{ matrix.go_version }} and ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        go_version: [1.15, 1.14]
+        go_version: [1.16, 1.17]
         os: [ubuntu-latest, macOS-latest]
     steps:
       - name: Set up Go ${{ matrix.go_version }}
-        uses: actions/setup-go@v1
+        uses: actions/setup-go@331ce1d993939866bb63c32c6cbbfd48fa76fc57 # v2.1.4
         with:
           go-version: ${{ matrix.go_version }}
         id: go
 
-      - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
+      - name: Check out code
+        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
+        with:
+          fetch-depth: 0
 
       - name: Get dependencies
         run: go mod download
 
       - name: Build
-        uses: crazy-max/ghaction-mage@v1
-        with:
-          version: latest
-          args: -v go:build
+        run: make go:build
 
       - name: Test
-        uses: crazy-max/ghaction-mage@v1
-        with:
-          version: latest
-          args: -v go:coverage
+        run: make go:coverage
 
       - name: Send coverage
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # v2.1.0
         with:
-          file: tests/coverage/coverage.out
+          file: ./tests/coverage/coverage.out
+          flags: unittests,${{ matrix.os }}
