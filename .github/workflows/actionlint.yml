@@ -1,5 +1,5 @@
 ---
-name: Lint
+name: actionlint
 
 on:
   push:
@@ -8,14 +8,11 @@ on:
 
 jobs:
   lint:
-    name: Run linters
+    name: Run actionlint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
-
-      - name: Lint with golangci-lint
-        uses: golangci/golangci-lint-action@5c56cd6c9dc07901af25baab6f2b0d9f3b7c3018 # v2.5.2
 
       - name: Lint with actionlint
         uses: reviewdog/action-actionlint@890a514e7f1577c0e0fe7790b4cb8be4a1fc47d6 # v1.14.0
