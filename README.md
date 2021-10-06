@@ -12,11 +12,14 @@ from a set of fragment files and templates.
 It was inspired by [towncrier](https://github.com/twisted/towncrier)
 and [git-chlog](https://github.com/git-chglog/git-chglog).
 
+
 ## Badges
 
 ![Build](https://github.com/wfscheper/stentor/workflows/Build/badge.svg)
 [![codecov](https://codecov.io/gh/wfscheper/stentor/branch/master/graph/badge.svg)](https://codecov.io/gh/wfscheper/stentor)
 [![License](https://img.shields.io/github/license/wfscheper/stentor)](/LICENSE)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
+
 
 ## Installation
 
@@ -24,15 +27,15 @@ and [git-chlog](https://github.com/git-chglog/git-chglog).
 
 Download a pre-built binary for your OS and Architecture from the [releases](./releases) page.
 
+
 ### Go
 
-You can also build `stentor` directly using `go get`:
+You can also build `stentor` directly using `go install`:
 
 ```bash
-cd "$(mktmp -d)"
-go mod init fake
-go get github.com/wfscheper/stentor/cmd/stentor@v0.2.1
+go install github.com/wfscheper/stentor/cmd/stentor@latest
 ```
+
 
 ## Usage
 
@@ -63,7 +66,8 @@ This example assumes that there is already a v0.1.0 tag.
    $ cat >.stentor.d/1.feature.md << EOF
    Added the foo feature.
 
-   The foo feature is full of foos, and is awesome.
+   The foo feature is full of foos,
+   and is awesome.
    EOF
    $ cat >.stentor.d/2.fix.md << EOF
    Fixed parsing foos that contain special characters
@@ -102,7 +106,8 @@ This example assumes that there is already a v0.1.0 tag.
    $ git commit -m "Setup stentor to generate CHANGELOG.md"
    ```
 
-1. Use the `-release` flag to consume the news fragments.
+1. Use the `-release` flag to consume the fragments
+   and update the news file.
 
    ```bash
    $ stentor -release v0.2.0 v0.1.0

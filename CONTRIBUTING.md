@@ -33,14 +33,14 @@ to manage local build tasks.
 In order to isolate build dependnecies like `mage`
 from `stentor`'s runtime dependnecies,
 the `magefile.go` is kept in a separate module.
-A shell script is provided to make running mage correctly easier.
-Run `./magew -l` to see a basic list of mage targets,
+A simple Makefile is provided to make running mage correctly easier.
+Run `make help` to see a basic list of mage targets,
 and what they do.
 
 
 ## Tests
 
-Use the `./mage go:test` command to run the test suite locally.
+Use the `make go:test` command to run the test suite locally.
 This ensures that your tests are run in the same way as our CI.
 
 `stentor` uses the [testify] package for most tests,
@@ -95,20 +95,27 @@ named `<issue #>.(breaking|build|chore|deprecation|feature|fix|test).md`.
 
 Changelog entries should follow these rules:
 
-- Use [semantic newlines], just like other documentation.
-- Wrap the names of things in backticks, `like this`.
-- Wrap arguments with asterisks: _these_ or _attributes_.
+- Use [semantic newlines],
+  just like other documentation.
+- Wrap the names of things in backticks,
+  `like this`.
+- Wrap arguments with asterisks:
+  *these* or *attributes*.
 - Names of functions or other callables should be followed by parentheses,
   `my_cool_function()`.
-- Use the active voice and either present tense or simple past tense.
+- Use the active voice
+  and either present tense
+  or simple past tense.
 
   - Added `my_cool_function()` to do cool things.
-  - Creating `Foo` objects with the _many_ argument no longer raises a `RuntimeError`.
+  - Creating `Foo` objects
+    with the *many* argument
+    no longer raises a `RuntimeError`.
 
 - For the rare change that addresses multiple pull requests,
   create multiple fragments with the same contents.
 
-To see what `stentor` will add to the `CHANGELOG.md`, run `./magew changelog`.
+To see what `stentor` will add to the `CHANGELOG.md`, run `make changelog`.
 
 
 ## Development
@@ -132,11 +139,13 @@ for details.
 ### Local Development
 
 First,
-make sure you have the latest version of [go 1.15](https://golang.org/dl/) installed.
+make sure you have the latest version of [go 1.16](https://golang.org/dl/) installed.
 `stentor` supports the two most recent releases,
 so development should be done with older stable release.
 
-Next, make a fork of the `stentor` repository by going to <https://github.com/wfscheper/stentor>
+Next,
+make a fork of the `stentor` repository
+by going to <https://github.com/wfscheper/stentor>
 and clicking on the **Fork** button near the top of the page.
 
 Then clone your fork of the `stentor` repository:
@@ -145,7 +154,8 @@ Then clone your fork of the `stentor` repository:
 git clone git@github.com:<username>/stentor.git
 ```
 
-Installing the [pre-commit] hooks is recommend to ensure your commit will pass our CI checks:
+Installing the [pre-commit] hooks is recommend
+to ensure your commit will pass our CI checks:
 
 ```bash
 pre-commit install -t pre-commit -t commit-msg
