@@ -16,7 +16,7 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.28.1
+    rev: v0.29.0
     hooks:
       - id: markdownlint
         exclude: ^(\.stentor\.d/|.*/testdata/)
@@ -35,7 +35,7 @@ repos:
         additional_dependencies: ["@commitlint/config-conventional"]
 
   - repo: https://github.com/rhysd/actionlint
-    rev: v1.6.4
+    rev: v1.6.6
     hooks:
       - id: actionlint
 
