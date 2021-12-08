@@ -8,6 +8,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Changes for the next release can be found in the [".stentor.d" directory](./.stentor.d).
 
 <!-- stentor output starts -->
+
+## [v0.3.0] - 2021-12-08
+
+### Deprecated
+
+- `fragment.New` is deprecated in favor of `fragment.Parse`.
+
+  `New` was non-ideomatic in two ways.
+  `New` behaved more like a parser than a constructor,
+  and it returned a `Fragment` value
+  that was not usable when an error was encountered.
+
+  `New` will be removed before `stentor` v1.0.0 is released.
+  [#23](https://github.com/wfscheper/stentor/issues/23)
+- `newsfile.WriteFragments` is deprecated in favor of `newsfile.WriteRelease`.
+
+  `WriteFragments` was confusingly named,
+  since the function was actually writing a release to the news file.
+
+  `WriteFragments` will be removed before `stentor` v1.0.0 is released.
+  [#24](https://github.com/wfscheper/stentor/issues/24)
+
+
+### Removed
+
+- Remove the following duplicated constants from the `config` package:
+
+  - HostingGithub
+  - HostingGitlab
+  - MarkupMarkdown
+  - MarkupRST
+  [#25](https://github.com/wfscheper/stentor/issues/25)
+
+
+[v0.3.0]: https://github.com/wfscheper/stentor/compare/v0.2.3...v0.3.0
+
+
+----
+
 ## [v0.2.3] - 2021-01-30
 
 ### Fixed
