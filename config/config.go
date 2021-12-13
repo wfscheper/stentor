@@ -209,6 +209,6 @@ type Section struct {
 	// ShorName is the string used in a fragment file to indicate what section the fragment is for.
 	ShortName string `toml:"short_name,omitempty" yaml:"short_name,omitempty"`
 	// ShowAlways is a boolean indicating whether to show the section even if there are no news items.
-	// This is a pointer to that we can use omitempty, and still render false values.
+	// This is a pointer so that we can use omitempty, and still render false values.
 	ShowAlways *bool `toml:"show_always,omitempty" yaml:"show_always,omitempty"`
 }

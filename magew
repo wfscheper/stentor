@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-
-rootDir="$(readlink -f $(dirname $0))"
-(
-    cd "${rootDir}"/mage
-    mage -w "${rootDir}" "$@"
-)
