@@ -41,6 +41,7 @@ var (
 	// ErrMissingRepository is the error returned if a config file does not declare a repository.
 	ErrMissingRepository = errors.New("repository is required")
 
+	//jscpd:ignore-start
 	defaultSectionConfig = []Section{
 		{
 			Name:      "Security",
@@ -67,6 +68,7 @@ var (
 			ShortName: "fix",
 		},
 	}
+	//jscpd:ignore-end
 )
 
 type tomlConfig struct {

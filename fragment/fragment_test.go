@@ -16,7 +16,6 @@ package fragment
 
 import (
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -26,60 +25,57 @@ import (
 
 func TestParse(t *testing.T) {
 	tests := []struct {
-		name string
-		want Fragment
+		name    string
+		want    Fragment
+		wantErr string
 	}{
-		{"ticket.section.md", Fragment{"section", "ticket", "contents"}},
-		{"ticket.section.extra-bit.md", Fragment{"section", "ticket", "contents"}},
-		{"ticket.section.several.extra.bits.md", Fragment{"section", "ticket", "contents"}},
+		{
+			name: "ticket.section.md",
+			want: Fragment{"section", "ticket", "contents"},
+		},
+		{
+			name: "ticket.section.extra-bit.md",
+			want: Fragment{"section", "ticket", "contents"},
+		},
+		{
+			name: "ticket.section.several.extra.bits.md",
+			want: Fragment{"section", "ticket", "contents"},
+		},
+		{
+			name:    "foo",
+			wantErr: "not a valid fragment file: not enough parts",
+		},
+		{
+			name:    "foo.md",
+			wantErr: "not a valid fragment file: not enough parts",
+		},
+		{
+			name:    ".section.md",
+			wantErr: "not a valid fragment file: empty issue",
+		},
+		{
+			name:    "ticket..md",
+			wantErr: "not a valid fragment file: empty section",
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			tmpdir, err := ioutil.TempDir("", "stentor-")
-			if err != nil {
-				t.Fatal(err)
-			}
-			defer os.RemoveAll(tmpdir)
+			tmpdir := t.TempDir()
 
 			fn := filepath.Join(tmpdir, tt.name)
-			err = ioutil.WriteFile(fn, []byte(`contents`), 0600)
-			require.NoError(t, err)
+			require.NoError(t, ioutil.WriteFile(fn, []byte(`contents`), 0600))
 
-			if got, err := Parse(fn); assert.NoError(t, err) {
-				assert.Equal(t, tt.want, *got)
+			got, err := Parse(fn)
+			if tt.wantErr == "" {
+				if assert.NoError(t, err) {
+					assert.Equal(t, tt.want, *got)
+				}
+			} else {
+				assert.EqualError(t, err, tt.wantErr)
 			}
-		})
-	}
-}
-
-func TestNew_error(t *testing.T) {
-	tests := []struct {
-		name string
-		want string
-	}{
-		{"foo", "not a valid fragment file: not enough parts"},
-		{"foo.md", "not a valid fragment file: not enough parts"},
-		{".section.md", "not a valid fragment file: empty issue"},
-		{"ticket..md", "not a valid fragment file: empty section"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tmpdir, err := ioutil.TempDir("", "stentor-")
-			if err != nil {
-				t.Fatal(err)
-			}
-			defer os.RemoveAll(tmpdir)
-
-			fn := filepath.Join(tmpdir, tt.name)
-			err = ioutil.WriteFile(fn, []byte(`contents`), 0600)
-			require.NoError(t, err)
-
-			_, err = Parse(fn)
-			assert.EqualError(t, err, tt.want)
 		})
 	}
 }
