@@ -139,7 +139,7 @@ for details.
 ### Local Development
 
 First,
-make sure you have the latest version of [go 1.16](https://golang.org/dl/) installed.
+make sure you have the latest version of [go 1.17](https://golang.org/dl/) installed.
 `stentor` supports the two most recent releases,
 so development should be done with older stable release.
 
