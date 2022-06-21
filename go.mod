@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/ianbruene/go-difflib v1.2.0
 	github.com/pelletier/go-toml v1.9.5
-	github.com/stretchr/testify v1.7.2
+	github.com/stretchr/testify v1.7.4
 	pgregory.net/rapid v0.4.7
 )
 
