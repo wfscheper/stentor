@@ -50,6 +50,8 @@ When writing tests, some guidelines that we suggest you follow are:
 - `rapid` and `testify` do not play well with each other,
   so tests written using [rapid] should use the standard library `testing`
   package directly.
+- When testing multiple scenarios,
+  prefer [table-driven tests] over multiple test functions.
 - Use the variables `want` and `got` to hold data for assertions:
 
   ```golang
