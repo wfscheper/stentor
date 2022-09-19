@@ -19,7 +19,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -53,7 +52,7 @@ func NewCase(t *testing.T, dir, name string) *Case {
 		initialPath: filepath.Join(rootPath, "initial"),
 	}
 
-	data, err := ioutil.ReadFile(filepath.Join(rootPath, "testcase.json"))
+	data, err := os.ReadFile(filepath.Join(rootPath, "testcase.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -67,7 +66,7 @@ func NewCase(t *testing.T, dir, name string) *Case {
 
 // CompareOutput compares stdout to the contents of a stdout file in the test directory.
 func (c *Case) CompareOutput(stdout string) {
-	data, err := ioutil.ReadFile(filepath.Join(c.rootPath, "stdout"))
+	data, err := os.ReadFile(filepath.Join(c.rootPath, "stdout"))
 	if err != nil {
 		if os.IsNotExist(err) && stdout == "" {
 			return
@@ -80,7 +79,7 @@ func (c *Case) CompareOutput(stdout string) {
 
 // CompareError compares stderr to the contents of a stderr file in the test directory.
 func (c *Case) CompareError(errIn error, stderr string) {
-	data, err := ioutil.ReadFile(filepath.Join(c.rootPath, "stderr"))
+	data, err := os.ReadFile(filepath.Join(c.rootPath, "stderr"))
 	if err != nil {
 		if os.IsNotExist(err) && errIn == nil && stderr == "" {
 			return
@@ -131,7 +130,7 @@ func (c *Case) UpdateStdout(stdout string) {
 		panic(err)
 	}
 
-	if err := ioutil.WriteFile(stdoutPath, []byte(stdout), 0644); err != nil {
+	if err := os.WriteFile(stdoutPath, []byte(stdout), 0644); err != nil {
 		c.t.Fatal(err)
 	}
 }
@@ -246,11 +245,7 @@ func (te *Environment) Run(progName string, args []string) error {
 
 func (te *Environment) makeTempDir() {
 	if te.tmpdir == "" {
-		var err error
-		te.tmpdir, err = ioutil.TempDir("", "stentor-")
-		if err != nil {
-			te.t.Fatal(err)
-		}
+		te.tmpdir = te.t.TempDir()
 
 		// OSX uses a symlink, so resolve the link
 		if runtime.GOOS == "darwin" {

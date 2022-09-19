@@ -17,7 +17,6 @@ package newsfile
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -32,8 +31,7 @@ func TestWriteFragments(t *testing.T) {
 	is := assert.New(t)
 	must := require.New(t)
 
-	tmpdir, err := ioutil.TempDir("", "stentor-")
-	must.NoError(err)
+	tmpdir := t.TempDir()
 
 	wd, err := os.Getwd()
 	must.NoError(err)
@@ -42,18 +40,17 @@ func TestWriteFragments(t *testing.T) {
 	defer os.Chdir(wd) // nolint:errcheck // defer func
 
 	fn := filepath.Join(tmpdir, "file")
-	must.NoError(ioutil.WriteFile(fn, []byte("some text\n\n.. stentor output starts\n\nsome more text\n"), 0600))
+	must.NoError(os.WriteFile(fn, []byte("some text\n\n.. stentor output starts\n\nsome more text\n"), 0600))
 
 	if err := WriteRelease(fn, stentor.CommentRST, []byte("added data\n"), true); is.NoError(err) {
-		data, err := ioutil.ReadFile(fn)
+		data, err := os.ReadFile(fn)
 		must.NoError(err)
 		is.Equal("some text\n\n.. stentor output starts\nadded data\n\nsome more text\n", string(data))
 	}
 }
 
 func TestWriteFragments_no_comment(t *testing.T) {
-	tmpdir, err := ioutil.TempDir("", "stentor-")
-	require.NoError(t, err)
+	tmpdir := t.TempDir()
 
 	wd, err := os.Getwd()
 	require.NoError(t, err)
@@ -62,7 +59,7 @@ func TestWriteFragments_no_comment(t *testing.T) {
 	defer os.Chdir(wd) // nolint:errcheck // defer func
 
 	fn := filepath.Join(tmpdir, "file")
-	require.NoError(t, ioutil.WriteFile(fn, []byte("some text\nsome more text\n"), 0600))
+	require.NoError(t, os.WriteFile(fn, []byte("some text\nsome more text\n"), 0600))
 	require.EqualError(t, WriteRelease(fn, stentor.CommentMD, []byte("added data\n"), true), "no start comment found")
 }
 

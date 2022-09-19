@@ -19,7 +19,6 @@ import (
 	"bytes"
 	"errors"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 )
@@ -54,7 +53,7 @@ func WriteRelease(fn, startComment string, data []byte, keepHeader bool) error {
 }
 
 func writeRelease(fn string, startComment, data []byte, keepHeader bool) (string, error) {
-	dst, err := ioutil.TempFile(filepath.Dir(fn), "")
+	dst, err := os.CreateTemp(filepath.Dir(fn), "")
 	if err != nil {
 		return "", err
 	}

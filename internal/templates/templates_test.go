@@ -16,7 +16,6 @@ package templates
 
 import (
 	"bytes"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -59,12 +58,10 @@ const customTemplate = `Custom template.
 `
 
 func TestParse(t *testing.T) {
-	tmp, err := ioutil.TempDir("", "stentor-")
-	require.NoError(t, err)
-	defer os.RemoveAll(tmp)
+	tmp := t.TempDir()
 
 	fn := filepath.Join(tmp, "test.template")
-	require.NoError(t, ioutil.WriteFile(fn, []byte(customTemplate), 0600))
+	require.NoError(t, os.WriteFile(fn, []byte(customTemplate), 0600))
 
 	tmpl, err := Parse(fn)
 	require.NoError(t, err)

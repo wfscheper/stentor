@@ -16,7 +16,7 @@ package templates
 
 import (
 	"embed"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
@@ -45,7 +45,7 @@ func New(name string) (*template.Template, error) {
 
 // Parse returns the template parsed from file fn
 func Parse(fn string) (*template.Template, error) {
-	data, err := ioutil.ReadFile(fn)
+	data, err := os.ReadFile(fn)
 	if err != nil {
 		return nil, err
 	}

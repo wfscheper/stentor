@@ -17,7 +17,7 @@ package fragment
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -64,7 +64,7 @@ func Parse(fn string) (*Fragment, error) {
 		return nil, fmt.Errorf("not a valid fragment file: %s", errMsg)
 	}
 
-	data, err := ioutil.ReadFile(fn)
+	data, err := os.ReadFile(fn)
 	if err != nil {
 		return nil, err
 	}

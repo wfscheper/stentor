@@ -2,21 +2,17 @@ package main
 
 import (
 	"bytes"
-	"io/ioutil"
-	"os"
+	"io"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestStentor_displayVersion(t *testing.T) {
-	tmpdir, err := ioutil.TempDir("", "stentor-")
-	require.NoError(t, err)
-	defer os.RemoveAll(tmpdir)
+	tmpdir := t.TempDir()
 
 	out := &bytes.Buffer{}
-	s := New(tmpdir, []string{}, []string{}, ioutil.Discard, out)
+	s := New(tmpdir, []string{}, []string{}, io.Discard, out)
 	s.displayVersion()
 
 	assert.Equal(t, "stentor dev built from unknown on unknown\n", out.String())

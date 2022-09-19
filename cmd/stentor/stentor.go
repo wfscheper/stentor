@@ -18,7 +18,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -229,7 +228,7 @@ func (e Exec) displayVersion() {
 }
 
 func (Exec) readConfig(fn string) (config.Config, error) {
-	data, err := ioutil.ReadFile(fn)
+	data, err := os.ReadFile(fn)
 	if err != nil {
 		return config.Config{}, fmt.Errorf("could not read config files: %w", err)
 	}

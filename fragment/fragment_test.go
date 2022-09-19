@@ -15,7 +15,6 @@
 package fragment
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -38,15 +37,10 @@ func TestParse(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			tmpdir, err := ioutil.TempDir("", "stentor-")
-			if err != nil {
-				t.Fatal(err)
-			}
-			defer os.RemoveAll(tmpdir)
+			tmpdir := t.TempDir()
 
 			fn := filepath.Join(tmpdir, tt.name)
-			err = ioutil.WriteFile(fn, []byte(`contents`), 0600)
-			require.NoError(t, err)
+			require.NoError(t, os.WriteFile(fn, []byte(`contents`), 0600))
 
 			if got, err := Parse(fn); assert.NoError(t, err) {
 				assert.Equal(t, tt.want, *got)
@@ -68,17 +62,12 @@ func TestNew_error(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tmpdir, err := ioutil.TempDir("", "stentor-")
-			if err != nil {
-				t.Fatal(err)
-			}
-			defer os.RemoveAll(tmpdir)
+			tmpdir := t.TempDir()
 
 			fn := filepath.Join(tmpdir, tt.name)
-			err = ioutil.WriteFile(fn, []byte(`contents`), 0600)
-			require.NoError(t, err)
+			require.NoError(t, os.WriteFile(fn, []byte(`contents`), 0600))
 
-			_, err = Parse(fn)
+			_, err := Parse(fn)
 			assert.EqualError(t, err, tt.want)
 		})
 	}
