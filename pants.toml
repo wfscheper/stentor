@@ -1,0 +1,32 @@
+[GLOBAL]
+backend_packages = [
+  "pants.backend.experimental.go",
+  "pants.backend.experimental.go.lint.vet",
+  "pants.backend.python",
+  "pants.backend.python.lint.black",
+  "pants.backend.python.lint.docformatter",
+  "pants.backend.python.lint.flake8",
+  "pants.backend.python.lint.isort",
+  "pants.backend.python.typecheck.mypy",
+  "pants.backend.plugin_development",
+  "go.lint.golangci_lint",
+]
+pants_version = "2.12.0"
+pythonpath = ["%(buildroot)s/pants-plugins"]
+
+[golang]
+expected_version = "1.19"
+
+[python]
+enable_resolves = true
+interpreter_constraints = ["CPython>=3.9,<3.10"]
+
+[python-bootstrap]
+search_path = ["<PATH>", "<PYENV>"]
+
+[source]
+root_patterns = ["pants-plugins"]
+
+[anonymous-telemetry]
+enabled = "true"
+repo_id = "516f5391-4df1-45e5-b0cc-96913d21a8c4"

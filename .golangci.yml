@@ -1,11 +1,10 @@
 run:
   skip-files:
-    - internal/templates/rice-box.go
+    - dist/
 
 linters:
   disable-all: true
   enable:
-    - deadcode
     - depguard
     - errcheck
     - gocognit
@@ -21,11 +20,9 @@ linters:
     - nakedret
     - revive
     - staticcheck
-    - structcheck
     - stylecheck
     - typecheck
     - unconvert
     - unparam
     - unused
-    - varcheck
     - whitespace

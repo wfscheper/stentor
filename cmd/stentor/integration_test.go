@@ -21,45 +21,12 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/wfscheper/stentor/internal/test"
 )
-
-// The TestMain function creates a teststentor command for testing purposes and
-// deletes it after the tests have been run.
-// Most of this is taken from https://github.com/golang/dep and reused here.
-func TestMain(m *testing.M) {
-	args := []string{"build", "-o", "test" + appName + test.ExeSuffix}
-	out, err := exec.Command("go", args...).CombinedOutput()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "building testxkcdpwd failed: %v\n%s", err, out)
-		os.Exit(2)
-	}
-
-	// Don't let these environment variables confuse the test.
-	os.Unsetenv("GOPATH")
-	os.Unsetenv("GIT_ALLOW_PROTOCOL")
-	if home, ccacheDir := os.Getenv("HOME"), os.Getenv("CCACHE_DIR"); home != "" && ccacheDir == "" {
-		// On some systems the default C compiler is ccache.
-		// Setting HOME to a non-existent directory will break
-		// those systems.  Set CCACHE_DIR to cope.  Issue 17668.
-		os.Setenv("CCACHE_DIR", filepath.Join(home, ".ccache"))
-	}
-	os.Setenv("HOME", "/test-home-does-not-exist")
-	if os.Getenv("GOCACHE") == "" {
-		os.Setenv("GOCACHE", "off") // because $HOME is gone
-	}
-
-	r := m.Run()
-
-	os.Remove("test" + appName + test.ExeSuffix)
-
-	os.Exit(r)
-}
 
 // Entry point for running integration tests.
 func TestIntegration(t *testing.T) {
@@ -82,8 +49,7 @@ func TestIntegration(t *testing.T) {
 		// testName is the everything after "testdata/", excluding "testcase.json"
 		testName := strings.Join(segments[1:len(segments)-1], "/")
 		t.Run(testName, func(t *testing.T) {
-			t.Run("external", runTest(testName, relPath, wd, execCmd))
-			t.Run("internal", runTest(testName, relPath, wd, runMain))
+			runTest(testName, relPath, wd, runMain)
 		})
 		return nil
 	})
@@ -116,7 +82,6 @@ func runTest(name, relPath, wd string, run test.RunFunc) func(t *testing.T) {
 			err = testEnv.Run(appName, args)
 			if err != nil && i < len(testCase.Commands)-1 {
 				t.Errorf("cmd '%s' raised an unexpected error: %s", strings.Join(args, " "), err.Error())
-				return
 			}
 		}
 
@@ -127,15 +92,6 @@ func runTest(name, relPath, wd string, run test.RunFunc) func(t *testing.T) {
 			testCase.CompareOutput(testEnv.GetStdout())
 		}
 	}
-}
-
-func execCmd(prog string, args []string, stdout, stderr io.Writer, dir string, env []string) error {
-	cmd := exec.Command(prog, args...)
-	cmd.Stdout = stdout
-	cmd.Stderr = stderr
-	cmd.Dir = dir
-	cmd.Env = env
-	return cmd.Run()
 }
 
 func runMain(prog string, args []string, stdout, stderr io.Writer, dir string, env []string) (err error) {

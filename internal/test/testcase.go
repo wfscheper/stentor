@@ -22,13 +22,11 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"regexp"
-	"runtime"
 	"strings"
 	"testing"
 
-	"github.com/ianbruene/go-difflib/difflib"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // Case loads a testdata.json test configuration and executes that test.
@@ -80,39 +78,16 @@ func (c *Case) CompareOutput(stdout string) {
 
 // CompareError compares stderr to the contents of a stderr file in the test directory.
 func (c *Case) CompareError(errIn error, stderr string) {
-	data, err := ioutil.ReadFile(filepath.Join(c.rootPath, "stderr"))
+	data, err := os.ReadFile(filepath.Join(c.rootPath, "stderr"))
 	if err != nil {
-		if os.IsNotExist(err) && errIn == nil && stderr == "" {
+		// did we expect to find a stderr file?
+		if errors.Is(err, os.ErrNotExist) && errIn == nil && stderr == "" {
 			return
 		}
-		switch {
-		case stderr != "":
-			panic(errors.New(stderr))
-		case errIn != nil:
-			panic(errIn)
-		default:
-			panic(err)
-		}
+		require.NoError(c.t, err)
 	}
 
-	want := string(data)
-	pattern, err := regexp.Compile(want)
-	if err != nil {
-		c.t.Fatalf("could not parse stderr: %v", err)
-	}
-
-	expectError := want != ""
-	gotError := stderr != "" && errIn != nil
-	switch {
-	case expectError && gotError:
-		if match := pattern.FindString(stderr); match == "" {
-			c.t.Errorf("stderr did not match the expected error:\n%s", diffErr(c.t, stderr, want))
-		}
-	case expectError && !gotError:
-		c.t.Errorf("expected error:\n%s", want)
-	case !expectError && gotError:
-		c.t.Errorf("unexpected error:\n%s", stderr)
-	}
+	assert.Regexp(c.t, string(data), stderr)
 }
 
 func (c *Case) InitialPath() string {
@@ -195,7 +170,7 @@ func (te *Environment) CopyTree(src string) {
 		return nil
 	})
 
-	if err != nil && !os.IsNotExist(err) {
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
 		te.t.Fatalf("could not copy %s: %v", src, err)
 	}
 }
@@ -217,9 +192,7 @@ func (te *Environment) Join(args ...string) string {
 
 func (te *Environment) MakeDir(args ...string) {
 	p := te.Join(args...)
-	if err := os.MkdirAll(p, 0755); err != nil {
-		te.t.Fatalf("could not create directories %s: %+v", p, err)
-	}
+	require.NoError(te.t, os.MkdirAll(p, 0755))
 }
 
 // Run runs the tests command with args.
@@ -246,59 +219,24 @@ func (te *Environment) Run(progName string, args []string) error {
 
 func (te *Environment) makeTempDir() {
 	if te.tmpdir == "" {
-		var err error
-		te.tmpdir, err = ioutil.TempDir("", "stentor-")
-		if err != nil {
-			te.t.Fatal(err)
-		}
-
-		// OSX uses a symlink, so resolve the link
-		if runtime.GOOS == "darwin" {
-			real, err := filepath.EvalSymlinks(te.tmpdir)
-			if err != nil {
-				te.t.Fatal(err)
-			}
-			te.tmpdir = real
-		}
+		te.tmpdir = te.t.TempDir()
 	}
 }
 
 // RunFunc is a function that runs a test.
 type RunFunc func(prog string, args []string, stdout, stderr io.Writer, dir string, env []string) error
 
-func diffErr(t *testing.T, got, want string) string {
-	t.Helper()
-
-	diff, err := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
-		A:        difflib.SplitLines(want),
-		B:        difflib.SplitLines(got),
-		Context:  3,
-		FromFile: "want",
-		ToFile:   "got",
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	return diff
-}
-
 func copyFile(t *testing.T, dst, src string) {
 	t.Helper()
 
 	s, err := os.Open(src)
-	if err != nil {
-		t.Fatalf("could not open %s: %v", src, err)
-	}
+	require.NoError(t, err)
 	defer s.Close()
 
 	d, err := os.Create(dst)
-	if err != nil {
-		t.Fatalf("could not create %s: %v", dst, err)
-	}
+	require.NoError(t, err)
 	defer d.Close()
 
-	if _, err := io.Copy(d, s); err != nil {
-		t.Fatalf("could not write to %s: %v", dst, err)
-	}
+	_, err = io.Copy(d, s)
+	require.NoError(t, err)
 }
