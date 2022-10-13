@@ -21,12 +21,10 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"regexp"
 	"runtime"
 	"strings"
 	"testing"
 
-	"github.com/ianbruene/go-difflib/difflib"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -95,18 +93,11 @@ func (c *Case) CompareError(errIn error, stderr string) {
 	}
 
 	want := string(data)
-	pattern, err := regexp.Compile(want)
-	if err != nil {
-		c.t.Fatalf("could not parse stderr: %v", err)
-	}
-
 	expectError := want != ""
 	gotError := stderr != "" && errIn != nil
 	switch {
 	case expectError && gotError:
-		if match := pattern.FindString(stderr); match == "" {
-			c.t.Errorf("stderr did not match the expected error:\n%s", diffErr(c.t, stderr, want))
-		}
+		assert.Regexp(c.t, want, stderr, "stderr did not match the expected error")
 	case expectError && !gotError:
 		c.t.Errorf("expected error:\n%s", want)
 	case !expectError && gotError:
@@ -260,23 +251,6 @@ func (te *Environment) makeTempDir() {
 
 // RunFunc is a function that runs a test.
 type RunFunc func(prog string, args []string, stdout, stderr io.Writer, dir string, env []string) error
-
-func diffErr(t *testing.T, got, want string) string {
-	t.Helper()
-
-	diff, err := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
-		A:        difflib.SplitLines(want),
-		B:        difflib.SplitLines(got),
-		Context:  3,
-		FromFile: "want",
-		ToFile:   "got",
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	return diff
-}
 
 func copyFile(t *testing.T, dst, src string) {
 	t.Helper()

@@ -40,16 +40,13 @@ and what they do.
 
 ## Tests
 
-Use the `make go:test` command to run the test suite locally.
+Use the `make test` command to run the test suite locally.
 This ensures that your tests are run in the same way as our CI.
 
 `stentor` uses the [testify] package for most tests,
 but some tests are written using the [rapid] property testing framework.
 When writing tests, some guidelines that we suggest you follow are:
 
-- `rapid` and `testify` do not play well with each other,
-  so tests written using [rapid] should use the standard library `testing`
-  package directly.
 - When testing multiple scenarios,
   prefer [table-driven tests] over multiple test functions.
 - Use the variables `want` and `got` to hold data for assertions:
@@ -141,7 +138,7 @@ for details.
 ### Local Development
 
 First,
-make sure you have the latest version of [go 1.17](https://golang.org/dl/) installed.
+make sure you have the latest version of [go 1.18](https://golang.org/dl/) installed.
 `stentor` supports the two most recent releases,
 so development should be done with older stable release.
 

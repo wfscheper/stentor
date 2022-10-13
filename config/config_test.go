@@ -76,6 +76,11 @@ func TestConfig_marshal(t *testing.T) {
 }
 
 func Test_parseConfig(t *testing.T) {
+	t.Parallel()
+
+	type parseFunc func([]byte) (Config, error)
+	tests := []parseFunc{parseConfig, ParseBytes}
+
 	defaultConfig := Config{
 		FragmentDir: ".stentor.d",
 		Hosting:     "github",
@@ -109,51 +114,57 @@ func Test_parseConfig(t *testing.T) {
 		},
 	}
 
-	is := assert.New(t)
+	for _, tf := range tests {
+		tf := tf
 
-	if c, err := parseConfig([]byte("")); is.NoError(err) {
-		is.Equal(defaultConfig, c)
-	}
+		t.Run("empty config", func(t *testing.T) {
+			t.Parallel()
 
-	// bad toml
-	y := []byte(`
+			if c, err := tf([]byte("")); assert.NoError(t, err) {
+				assert.Equal(t, defaultConfig, c)
+			}
+		})
+
+		t.Run("bad toml", func(t *testing.T) {
+			t.Parallel()
+
+			// bad toml
+			y := []byte(`
 [stentor]
 foo = "bar"
 `)
-	_, err := parseConfig(y)
-	is.EqualError(err, "undecoded keys: [\"stentor.foo\"]")
+			_, err := tf(y)
+			assert.EqualError(t, err, "undecoded keys: [\"stentor.foo\"]")
+		})
+	}
 }
 
 func Test_validateConfig(t *testing.T) {
 	t.Parallel()
 
-	genHosting := rapid.SampledFrom([]string{"github", "gitlab"})
-	genMarkup := rapid.SampledFrom([]string{"markdown", "rst"})
-	genRepository := rapid.Just("https://host/name/repo")
-
 	t.Run("invalid hosting", rapid.MakeCheck(func(t *rapid.T) {
 		c := Config{
-			Hosting:    rapid.String().Draw(t, "hosting").(string),
-			Markup:     genMarkup.Draw(t, "markup").(string),
-			Repository: genRepository.Draw(t, "repository").(string),
+			Hosting:    rapid.String().Draw(t, "hosting"),
+			Markup:     genMarkup().Draw(t, "markup"),
+			Repository: genRepository().Draw(t, "repository"),
 		}
 		assert.EqualError(t, ValidateConfig(c), ErrBadHosting.Error())
 	}))
 
 	t.Run("invalid markup", rapid.MakeCheck(func(t *rapid.T) {
 		c := Config{
-			Hosting:    genHosting.Draw(t, "hosting").(string),
-			Markup:     rapid.String().Draw(t, "markup").(string),
-			Repository: genRepository.Draw(t, "repository").(string),
+			Hosting:    genHosting().Draw(t, "hosting"),
+			Markup:     rapid.String().Draw(t, "markup"),
+			Repository: genRepository().Draw(t, "repository"),
 		}
 		assert.EqualError(t, ValidateConfig(c), ErrBadMarkup.Error())
 	}))
 
 	t.Run("invalid repository", rapid.MakeCheck(func(t *rapid.T) {
 		c := Config{
-			Hosting:    genHosting.Draw(t, "hosting").(string),
-			Markup:     genMarkup.Draw(t, "markup").(string),
-			Repository: rapid.SampledFrom([]string{"file", ""}).Draw(t, "repository").(string),
+			Hosting:    genHosting().Draw(t, "hosting"),
+			Markup:     genMarkup().Draw(t, "markup"),
+			Repository: rapid.SampledFrom([]string{"file", ""}).Draw(t, "repository"),
 		}
 		if err := ValidateConfig(c); err != nil {
 			if c.Repository == "" {
@@ -170,10 +181,14 @@ func Test_validateConfig(t *testing.T) {
 
 	t.Run("no sections", rapid.MakeCheck(func(t *rapid.T) {
 		c := Config{
-			Hosting:    genHosting.Draw(t, "hosting").(string),
-			Markup:     genMarkup.Draw(t, "markup").(string),
-			Repository: genRepository.Draw(t, "repository").(string),
+			Hosting:    genHosting().Draw(t, "hosting"),
+			Markup:     genMarkup().Draw(t, "markup"),
+			Repository: genRepository().Draw(t, "repository"),
 		}
 		assert.EqualError(t, ValidateConfig(c), ErrBadSections.Error())
 	}))
 }
+
+func genHosting() *rapid.Generator[string]    { return rapid.SampledFrom([]string{"github", "gitlab"}) }
+func genMarkup() *rapid.Generator[string]     { return rapid.SampledFrom([]string{"markdown", "rst"}) }
+func genRepository() *rapid.Generator[string] { return rapid.Just("https://host/name/repo") }

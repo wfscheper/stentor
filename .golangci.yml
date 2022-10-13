@@ -1,7 +1,4 @@
 run:
-  skip-files:
-    - internal/templates/rice-box.go
-
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0
@@ -9,7 +6,6 @@ issues:
 linters:
   disable-all: true
   enable:
-    - deadcode
     - depguard
     - errcheck
     - gocognit
@@ -25,11 +21,9 @@ linters:
     - nakedret
     - revive
     - staticcheck
-    - structcheck
     - stylecheck
     - typecheck
     - unconvert
     - unparam
     - unused
-    - varcheck
     - whitespace
