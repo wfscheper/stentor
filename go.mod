@@ -1,12 +1,12 @@
 module github.com/wfscheper/stentor
 
-go 1.17
+go 1.18
 
 require (
 	github.com/ianbruene/go-difflib v1.2.0
 	github.com/pelletier/go-toml v1.9.5
 	github.com/stretchr/testify v1.8.0
-	pgregory.net/rapid v0.4.8
+	pgregory.net/rapid v0.5.3
 )
 
 require (

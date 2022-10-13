@@ -20,11 +20,11 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive && \
 
 # Install python packages
 RUN python3 -m pip install --no-cache-dir \
-      pre-commit==2.15.0
+      pre-commit==2.20.0
 
 # Install go packages
 USER vscode
-RUN go install github.com/rhysd/actionlint/cmd/actionlint@v1.6.8
+RUN go install github.com/rhysd/actionlint/cmd/actionlint@v1.6.21
 
 # [Optional] Uncomment this line to install global node packages.
 # RUN su vscode -c "source /usr/local/share/nvm/nvm.sh && npm install -g <your-package-here>" 2>&1
