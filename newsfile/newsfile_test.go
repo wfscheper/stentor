@@ -65,7 +65,7 @@ func TestWriteFragments_no_comment(t *testing.T) {
 
 func Test_copyIntoFile(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
-		nt := newsfileGen().Draw(t, "newsfile").(newsfileTest)
+		nt := newsfileGen().Draw(t, "newsfile")
 
 		var src io.Reader
 		if nt.includeComment {
@@ -99,19 +99,19 @@ type newsfileTest struct {
 	keepHeader, includeComment          bool
 }
 
-func newsfileGen() *rapid.Generator {
+func newsfileGen() *rapid.Generator[newsfileTest] {
 	return rapid.Custom(func(t *rapid.T) newsfileTest {
 		return newsfileTest{
 			startComment: rapid.SampledFrom([]string{
 				stentor.CommentMD,
 				stentor.CommentRST,
-			}).Draw(t, "startComment").(string),
+			}).Draw(t, "startComment"),
 			// we pick these sizes to force the start comment out past a single read
-			header:         rapid.StringN(512, 1024, -1).Draw(t, "header").(string),
-			trailer:        rapid.StringN(512, 1024, -1).Draw(t, "trailer").(string),
-			data:           rapid.String().Draw(t, "data").(string),
-			keepHeader:     rapid.Bool().Draw(t, "keepHeader").(bool),
-			includeComment: rapid.Bool().Draw(t, "includeComment").(bool),
+			header:         rapid.StringN(512, 1024, -1).Draw(t, "header"),
+			trailer:        rapid.StringN(512, 1024, -1).Draw(t, "trailer"),
+			data:           rapid.String().Draw(t, "data"),
+			keepHeader:     rapid.Bool().Draw(t, "keepHeader"),
+			includeComment: rapid.Bool().Draw(t, "includeComment"),
 		}
 	})
 }

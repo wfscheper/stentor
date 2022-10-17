@@ -1,12 +1,12 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.158.0/containers/go
 {
-	"name": "Go",
+	"name": "stentor",
 	"build": {
 		"dockerfile": "Dockerfile",
 		"args": {
 			// Update the VARIANT arg to pick a version of Go: 1, 1.15, 1.14
-			"VARIANT": "1.17",
+			"VARIANT": "1.18",
 			// Options
 			"INSTALL_NODE": "false",
 			"NODE_VERSION": "lts/*"

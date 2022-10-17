@@ -13,6 +13,7 @@ COMMIT      := $(shell git rev-parse HEAD)
 RELEASEFLAGS = $(if $(filter false,$(DRYRUN)),,--snapshot) --rm-dist
 REPORTDIR    = reports
 STENTORFLAGS = $(if $(filter false,$(DRYRUN)),-release)
+TESTFLAGS    = -cover -covermode=atomic
 
 # output controls
 override Q = $(if $(filter 1,$(V)),,@)
@@ -50,7 +51,7 @@ test tests: | $(TESTER) ; $(info $(M) running tests…)
 
 .PHONY: test-report
 test-report: TESTERFLAGS += --junitfile reports/junit.xml
-test-report: TESTFLAGS += -cover -covermode=atomic -coverprofile=reports/cover.out
+test-report: TESTFLAGS += -coverprofile=reports/cover.out
 test-report: $(REPORTDIR)
 test-report: test
 
