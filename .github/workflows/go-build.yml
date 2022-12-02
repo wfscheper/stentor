@@ -15,34 +15,17 @@ jobs:
         go_version: [1.18, 1.19]
         os: [ubuntu-latest, macOS-latest]
     steps:
-      - name: Set up Go ${{ matrix.go_version }}
-        uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f # v2.1.4
-        with:
-          go-version: ${{ matrix.go_version }}
-        id: go
-
-      - name: Determine cache locations
-        id: go-cache-paths
-        run: |
-          echo "::set-output name=go-build::$(go env GOCACHE)"
-          echo "::set-output name=go-mod::$(go env GOMODCACHE)"
-
       - name: Check out code
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # v2.3.4
         with:
           fetch-depth: 0
 
-      - name: Go Build Cache
-        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v2.1.6
+      - name: Set up Go ${{ matrix.go_version }}
+        uses: actions/setup-go@d0a58c1c4d2b25278816e339b944508c875f3613 # v2.1.4
         with:
-          path: ${{ steps.go-cache-paths.outputs.go-build }}
-          key: ${{ matrix.os }}-go-${{ matrix.go_version }}-build-${{ hashFiles('**/go.sum') }}
-
-      - name: Go Module Cache
-        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # v2.1.6
-        with:
-          path: ${{ steps.go-cache-paths.outputs.go-mod }}
-          key: ${{ matrix.os }}-go-${{ matrix.go_version }}-mod-${{ hashFiles('**/go.sum') }}
+          go-version: ${{ matrix.go_version }}
+          cache: true
+        id: go
 
       - name: Get dependencies
         run: go mod download
