@@ -24,6 +24,7 @@
 # vendor/
 
 ### Go Patch ###
+/go.work*
 /vendor/
 /Godeps/
 
