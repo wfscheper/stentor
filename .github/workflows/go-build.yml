@@ -12,7 +12,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        go_version: [1.18, 1.19]
+        go_version: [stable, oldstable]
         os: [ubuntu-latest, macOS-latest]
     steps:
       - name: Check out code

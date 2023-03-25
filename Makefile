@@ -2,10 +2,10 @@ TARGET   = bin/stentor
 SOURCES := $(shell find . -name '*.go' -a -not -name '*_test.go')
 
 # commands
-GOTAGGER = bin/gotagger
-LINTER   = bin/golangci-lint
-RELEASER = bin/goreleaser
-TESTER   = bin/gotestsum
+GOTAGGER = tools/gotagger
+LINTER   = tools/golangci-lint
+RELEASER = tools/goreleaser
+TESTER   = tools/gotestsum
 
 # variables
 BUILDDATE   := $(shell date +%Y-%m-%d)
@@ -27,7 +27,7 @@ build: $(TARGET)
 
 .PHONY: changelog
 changelog: $(TARGET) | $(GOTAGGER) ; $(info $(M) generating changelog)
-	$Q $(TARGET) $(STENTORFLAGS) $(shell bin/gotagger) $(shell git tag --list --sort=-version:refname | head -n1)
+	$Q $(TARGET) $(STENTORFLAGS) $(shell $(GOTAGGER)) $(shell git tag --list --sort=-version:refname | head -n1)
 
 .PHONY: clean
 clean:
@@ -67,20 +67,29 @@ show:
 version: | $(GOTAGGER)
 	@$(GOTAGGER)
 
-$(GOTAGGER): tools/go.mod tools/go.sum ; $(info $(M) building $(GOTAGGER)…)
-	cd tools && GOBIN=$(CURDIR)/bin go install github.com/sassoftware/gotagger/cmd/gotagger
-
-$(LINTER): tools/go.mod tools/go.sum ; $(info $(M) building $(LINTER)…)
-	cd tools && GOBIN=$(CURDIR)/bin go install github.com/golangci/golangci-lint/cmd/golangci-lint
-
-$(RELEASER): tools/go.mod tools/go.sum ; $(info $(M) building $(RELEASER)…)
-	cd tools && GOBIN=$(CURDIR)/bin go install github.com/goreleaser/goreleaser
+.PHONY: FORCE
+$(TARGET): FORCE | $(GOTAGGER); $(info $(M) building $(TARGET)…)
+	$Q go build -o $@ -mod=readonly -ldflags "-X main.buildDate=$(BUILDDATE) -X main.commit=$(COMMIT) -X main.version=$$($(GOTAGGER))" ./cmd/stentor/
 
 $(REPORTDIR):
 	@mkdir -p $@
 
-$(TARGET): $(SOURCES) go.mod go.sum | $(GOTAGGER); $(info $(M) building $(TARGET)…)
-	go build -o $@ -mod=readonly -ldflags "-X main.buildDate=$(BUILDDATE) -X main.commit=$(COMMIT) -X main.version=$$(bin/gotagger)" ./cmd/stentor/
+define build_tool
+$(1): tools/go.mod tools/go.sum ; $$(info $$(M) building $(1)…)
+	$Q cd tools && go build -mod=readonly $(2)
+endef
 
-$(TESTER): tools/go.mod tools/go.sum ; $(info $(M) building $(TESTER)…)
-	cd tools && GOBIN=$(CURDIR)/bin go install gotest.tools/gotestsum
+define update_tool
+.PHONY: update-$(notdir $(1))
+update-$(notdir $(1)): ; $$(info $$(M) updating $(notdir $(1))…)
+	$Q cd tools && go get $(2)
+endef
+
+$(eval $(call build_tool,$(GOTAGGER),github.com/sassoftware/gotagger/cmd/gotagger))
+$(eval $(call build_tool,$(LINTER),github.com/golangci/golangci-lint/cmd/golangci-lint))
+$(eval $(call build_tool,$(RELEASER),github.com/goreleaser/goreleaser))
+$(eval $(call build_tool,$(TESTER),gotest.tools/gotestsum))
+$(eval $(call update_tool,$(GOTAGGER),github.com/sassoftware/gotagger/cmd/gotagger))
+$(eval $(call update_tool,$(LINTER),github.com/golangci/golangci-lint/cmd/golangci-lint))
+$(eval $(call update_tool,$(RELEASER),github.com/goreleaser/goreleaser))
+$(eval $(call update_tool,$(TESTER),gotest.tools/gotestsum))

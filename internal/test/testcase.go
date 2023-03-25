@@ -240,11 +240,11 @@ func (te *Environment) makeTempDir() {
 
 		// OSX uses a symlink, so resolve the link
 		if runtime.GOOS == "darwin" {
-			real, err := filepath.EvalSymlinks(te.tmpdir)
+			realDir, err := filepath.EvalSymlinks(te.tmpdir)
 			if err != nil {
 				te.t.Fatal(err)
 			}
-			te.tmpdir = real
+			te.tmpdir = realDir
 		}
 	}
 }

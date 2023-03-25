@@ -150,9 +150,6 @@ func TestSectionTemplate(t *testing.T) {
 	}
 }
 
-func Test_newRelease_error(t *testing.T) {
-}
-
 func Test_newRelease(t *testing.T) {
 	tests := []struct {
 		repo, want, wantError string
