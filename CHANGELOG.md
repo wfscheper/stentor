@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Changes for the next release can be found in the [".stentor.d" directory](./.stentor.d).
 
 <!-- stentor output starts -->
+## [v0.3.1] - 2023-08-25
+
+### Changed
+
+- Upgrade module and tooling for go 1.18.
+  [#171](https://github.com/wfscheper/stentor/issues/171)
+
+
+[v0.3.1]: https://github.com/wfscheper/stentor/compare/v0.3.0...v0.3.1
+
+----
 
 ## [v0.3.0] - 2021-12-08
 
