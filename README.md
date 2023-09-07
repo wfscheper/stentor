@@ -56,7 +56,7 @@ This example assumes that there is already a v0.1.0 tag.
    ```bash
    $ cat >.stentor.d/stentor.toml << EOF
    [stentor]
-   repository = "https://giithub.com/myname/myrepo"
+   repository = "https://github.com/myname/myrepo"
    EOF
    ```
 
@@ -107,7 +107,9 @@ This example assumes that there is already a v0.1.0 tag.
    ```
 
 1. Use the `-release` flag to consume the fragments
-   and update the news file.
+   and update the news file.  
+
+   **Note:** If a CHANGELOG.md does not exist already, one will be created.
 
    ```bash
    $ stentor -release v0.2.0 v0.1.0
