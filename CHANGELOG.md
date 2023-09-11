@@ -8,6 +8,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Changes for the next release can be found in the [".stentor.d" directory](./.stentor.d).
 
 <!-- stentor output starts -->
+## [v0.4.0] - 2023-09-11
+
+### Deprecated
+
+- Upgrade module and tooling for go 1.18.
+  [#171](https://github.com/wfscheper/stentor/issues/171)
+
+
+### Added
+
+- Stentor now throws an error when it parses a fragment with a section name
+  that does not exist in its list of configured sections.
+  [#266](https://github.com/wfscheper/stentor/issues/266)
+
+
+[v0.4.0]: https://github.com/wfscheper/stentor/compare/v0.3.0...v0.4.0
+
+
+----
 
 ## [v0.3.0] - 2021-12-08
 
