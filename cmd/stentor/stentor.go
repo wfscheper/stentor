@@ -135,6 +135,13 @@ func (e Exec) Run() int { // nolint:gocognit // 31 > 30, but hard to see how to 
 		fragments = append(fragments, *f)
 	}
 
+	// verify the fragments against the configured sections
+	err = verifyFragmentSections(cfg.Sections, fragments)
+	if err != nil {
+		e.err.Println(err)
+		return genericExitCode
+	}
+
 	r, err := release.New(cfg.Repository, cfg.Markup, version, previousVersion)
 	if err != nil {
 		e.err.Println(err)
@@ -332,4 +339,28 @@ func lookupEnv(env []string, key string) (v string, ok bool) {
 	}
 
 	return
+}
+
+// verifyFragmentSections verifies that all Fragment
+// names are present in the list of expected Section names
+func verifyFragmentSections(sections []config.Section, fragments []fragment.Fragment) error {
+	validSections := []string{}
+	validSectionNames := map[string]bool{}
+	for _, section := range sections {
+		validSections = append(validSections, section.ShortName)
+		validSectionNames[section.ShortName] = true
+	}
+
+	invalidSectionNames := []string{}
+	for _, fragment := range fragments {
+		if _, found := validSectionNames[fragment.Section]; !found {
+			invalidSectionNames = append(invalidSectionNames, fragment.Section)
+		}
+	}
+
+	if len(invalidSectionNames) > 0 {
+		return fmt.Errorf("fragment files contained the following invalid section names: %v."+
+			" section names must be one of the following: %v", invalidSectionNames, validSections)
+	}
+	return nil
 }
