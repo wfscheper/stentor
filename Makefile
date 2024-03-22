@@ -1,5 +1,4 @@
 TARGET   = bin/stentor
-SOURCES := $(shell find . -name '*.go' -a -not -name '*_test.go')
 
 # commands
 GOTAGGER = tools/gotagger
