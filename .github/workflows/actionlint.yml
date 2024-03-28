@@ -15,4 +15,4 @@ jobs:
         uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v2.3.4
 
       - name: Lint with actionlint
-        uses: reviewdog/action-actionlint@7485c2136bd093d2317a854c72910eebaee35238 # v1.14.0
+        uses: reviewdog/action-actionlint@c6ee1eb0a5d47b2af53a203652b5dac0b6c4016e # v1.14.0
