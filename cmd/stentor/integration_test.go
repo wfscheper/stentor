@@ -69,7 +69,7 @@ func TestIntegration(t *testing.T) {
 	}
 
 	var relPath = "testdata"
-	err = filepath.Walk(relPath, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(relPath, func(path string, _ os.FileInfo, err error) error {
 		if err != nil {
 			t.Fatal("error walking testdata:", err)
 		}
