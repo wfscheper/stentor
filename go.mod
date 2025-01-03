@@ -4,8 +4,8 @@ go 1.18
 
 require (
 	github.com/pelletier/go-toml v1.9.5
-	github.com/stretchr/testify v1.8.2
-	pgregory.net/rapid v0.5.3
+	github.com/stretchr/testify v1.10.0
+	pgregory.net/rapid v1.1.0
 )
 
 require (

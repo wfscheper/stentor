@@ -1,9 +1,8 @@
+include .bingo/Variables.mk
+
 TARGET   = bin/stentor
 
 # commands
-GOTAGGER = tools/gotagger
-LINTER   = tools/golangci-lint
-RELEASER = tools/goreleaser
 TESTER   = tools/gotestsum
 
 # variables
@@ -17,6 +16,8 @@ TESTFLAGS    = -cover -covermode=atomic
 # output controls
 override Q = $(if $(filter 1,$(V)),,@)
 override M = ▶
+
+.DEFAULT_GOAL := all
 
 .PHONY: all
 all: lint build test
@@ -33,20 +34,20 @@ clean:
 	$Q $(RM) -r bin/ dist/ reports/
 
 .PHONY: dist
-dist: | $(RELEASER) ; $(info $(M) building dist…)
-	$(RELEASER) release $(RELEASEFLAGS)
+dist: | $(GORELEASER) ; $(info $(M) building dist…)
+	$(GORELEASER) release $(RELEASEFLAGS)
 
 .PHONY: fmt format ; $(info $(M) formatting…)
 fmt format: LINTERFLAGS += --fix
-fmt format: lint | $(LINTER)
+fmt format: lint | $(GOLANGCI_LINT)
 
 .PHONY: lint
-lint: | $(LINTER) ; $(info $(M) linting…)
-	$Q $(LINTER) run $(LINTERFLAGS)
+lint: | $(GOLANGCI_LINT) ; $(info $(M) linting…)
+	$Q $(GOLANGCI_LINT) run $(LINTERFLAGS)
 
 .PHONY: test tests
-test tests: | $(TESTER) ; $(info $(M) running tests…)
-	$Q $(TESTER) $(TESTERFLAGS) -- $(TESTFLAGS) ./...
+test tests: | $(GOTESTSUM) ; $(info $(M) running tests…)
+	$Q $(GOTESTSUM) $(TESTERFLAGS) -- $(TESTFLAGS) ./...
 
 .PHONY: test-report
 test-report: TESTERFLAGS += --junitfile reports/junit.xml
@@ -72,23 +73,3 @@ $(TARGET): FORCE | $(GOTAGGER); $(info $(M) building $(TARGET)…)
 
 $(REPORTDIR):
 	@mkdir -p $@
-
-define build_tool
-$(1): tools/go.mod tools/go.sum ; $$(info $$(M) building $(1)…)
-	$Q cd tools && go build -mod=readonly $(2)
-endef
-
-define update_tool
-.PHONY: update-$(notdir $(1))
-update-$(notdir $(1)): ; $$(info $$(M) updating $(notdir $(1))…)
-	$Q cd tools && go get $(2)
-endef
-
-$(eval $(call build_tool,$(GOTAGGER),github.com/sassoftware/gotagger/cmd/gotagger))
-$(eval $(call build_tool,$(LINTER),github.com/golangci/golangci-lint/cmd/golangci-lint))
-$(eval $(call build_tool,$(RELEASER),github.com/goreleaser/goreleaser))
-$(eval $(call build_tool,$(TESTER),gotest.tools/gotestsum))
-$(eval $(call update_tool,$(GOTAGGER),github.com/sassoftware/gotagger/cmd/gotagger))
-$(eval $(call update_tool,$(LINTER),github.com/golangci/golangci-lint/cmd/golangci-lint))
-$(eval $(call update_tool,$(RELEASER),github.com/goreleaser/goreleaser))
-$(eval $(call update_tool,$(TESTER),gotest.tools/gotestsum))
