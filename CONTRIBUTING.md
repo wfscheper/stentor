@@ -27,15 +27,8 @@ Some things we would like you to know:
 
 ## Tools
 
-`stentor` uses [mage](https://github.com/magefile/mage)
+`stentor` uses [make](https://www.gnu.org/software/make/)
 to manage local build tasks.
-
-In order to isolate build dependnecies like `mage`
-from `stentor`'s runtime dependnecies,
-the `magefile.go` is kept in a separate module.
-A simple Makefile is provided to make running mage correctly easier.
-Run `make help` to see a basic list of mage targets,
-and what they do.
 
 
 ## Tests
@@ -138,7 +131,7 @@ for details.
 ### Local Development
 
 First,
-make sure you have the latest version of [go 1.18](https://golang.org/dl/) installed.
+make sure you have a recent version of [go](https://golang.org/dl/) installed.
 `stentor` supports the two most recent releases,
 so development should be done with older stable release.
 
