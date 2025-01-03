@@ -27,9 +27,6 @@ import (
 )
 
 func TestSectionTemplate(t *testing.T) {
-	assert := assert.New(t)
-	require := require.New(t)
-
 	tests := []struct {
 		name        string
 		releaseFunc func(string, string, string) (*Release, error)
@@ -107,7 +104,7 @@ func TestSectionTemplate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := tt.releaseFunc("https://host/myname/myrepo", "v0.2.0", "v0.1.0")
-			require.NoError(err)
+			require.NoError(t, err)
 
 			// assing a fixed date
 			r.Date = time.Date(2020, 1, 2, 3, 4, 5, 6, time.UTC)
@@ -140,12 +137,12 @@ func TestSectionTemplate(t *testing.T) {
 			}
 
 			tmp, err := templates.New(tt.name)
-			require.NoError(err)
+			require.NoError(t, err)
 
 			buf := &bytes.Buffer{}
-			require.NoError(tmp.Execute(buf, r))
+			require.NoError(t, tmp.Execute(buf, r))
 
-			assert.Equal(tt.want, buf.String())
+			assert.Equal(t, tt.want, buf.String())
 		})
 	}
 }
