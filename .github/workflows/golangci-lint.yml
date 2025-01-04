@@ -16,4 +16,4 @@ jobs:
           go-version: stable
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v2.3.4
       - name: Lint with golangci-lint
-        uses: golangci/golangci-lint-action@08e2f20817b15149a52b5b3ebe7de50aff2ba8c5 # v2.5.2
+        uses: golangci/golangci-lint-action@971e284b6050e8a5849b72094c50ab08da042db8 # v2.5.2
