@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Set up Go
-        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.1.4
+        uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a # v2.1.4
         with:
           go-version: stable
 
