@@ -37,7 +37,7 @@ jobs:
         run: make test-report
 
       - name: Send coverage
-        uses: codecov/codecov-action@894ff025c7b54547a9a2a1e9f228beae737ad3c2 # v2.1.0
+        uses: codecov/codecov-action@1e68e06f1dbfde0e4cefc87efeba9e4643565303 # v2.1.0
         with:
           file: ./reports/coverage.out
           flags: unittests,${{ matrix.os }}
