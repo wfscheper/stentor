@@ -11,7 +11,7 @@ jobs:
     name: Run golangci-lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9
+      - uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a
         with:
           go-version: stable
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v2.3.4
