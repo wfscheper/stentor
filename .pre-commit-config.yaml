@@ -35,12 +35,12 @@ repos:
         additional_dependencies: ["@commitlint/config-conventional"]
 
   - repo: https://github.com/rhysd/actionlint
-    rev: v1.7.5
+    rev: v1.7.6
     hooks:
       - id: actionlint
 
   - repo: https://github.com/golangci/golangci-lint
-    rev: v1.62.2
+    rev: v1.63.4
     hooks:
       - id: golangci-lint
         args: [--allow-parallel-runners]
