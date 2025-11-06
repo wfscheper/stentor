@@ -35,8 +35,8 @@ $(GOTAGGER): $(BINGO_DIR)/gotagger.mod
 	@echo "(re)installing $(GOBIN)/gotagger-v0.9.1"
 	@cd $(BINGO_DIR) && GOWORK=off $(GO) build -mod=mod -modfile=gotagger.mod -o=$(GOBIN)/gotagger-v0.9.1 "github.com/sassoftware/gotagger/cmd/gotagger"
 
-GOTESTSUM := $(GOBIN)/gotestsum-v1.12.0
+GOTESTSUM := $(GOBIN)/gotestsum-v1.13.0
 $(GOTESTSUM): $(BINGO_DIR)/gotestsum.mod
 	@# Install binary/ries using Go 1.14+ build command. This is using bwplotka/bingo-controlled, separate go module with pinned dependencies.
-	@echo "(re)installing $(GOBIN)/gotestsum-v1.12.0"
-	@cd $(BINGO_DIR) && GOWORK=off $(GO) build -mod=mod -modfile=gotestsum.mod -o=$(GOBIN)/gotestsum-v1.12.0 "gotest.tools/gotestsum"
+	@echo "(re)installing $(GOBIN)/gotestsum-v1.13.0"
+	@cd $(BINGO_DIR) && GOWORK=off $(GO) build -mod=mod -modfile=gotestsum.mod -o=$(GOBIN)/gotestsum-v1.13.0 "gotest.tools/gotestsum"
