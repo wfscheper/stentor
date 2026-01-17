@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         go_version: [stable, oldstable]
-        os: [ubuntu-latest, macOS-latest]
+        os: [ubuntu-latest, macOS-latest, windows-latest]
     steps:
       - name: Check out code
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v2.3.4
