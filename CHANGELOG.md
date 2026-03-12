@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Changes for the next release can be found in the [".stentor.d" directory](./.stentor.d).
 
 <!-- stentor output starts -->
+## [v0.4.1] - 2026-03-11
+
+### Changed
+
+- Updated documentation on how to do initial release.
+  [#299](https://github.com/wfscheper/stentor/issues/299)
+
+
+[v0.4.1]: https://github.com/wfscheper/stentor/compare/v0.4.0...v0.4.1
+
+
+----
+
+
 ## [v0.4.0] - 2023-09-11
 
 ### Deprecated
