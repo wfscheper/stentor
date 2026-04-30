@@ -1,11 +1,11 @@
 module github.com/wfscheper/stentor
 
-go 1.18
+go 1.23
 
 require (
 	github.com/pelletier/go-toml v1.9.5
 	github.com/stretchr/testify v1.11.1
-	pgregory.net/rapid v1.2.0
+	pgregory.net/rapid v1.3.0
 )
 
 require (
