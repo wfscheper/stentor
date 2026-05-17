@@ -1,7 +1,6 @@
 include .bingo/Variables.mk
 
 TARGET   = bin/stentor
-SOURCES := $(shell find . -name '*.go' -a -not -name '*_test.go')
 
 # commands
 TESTER   = tools/gotestsum
